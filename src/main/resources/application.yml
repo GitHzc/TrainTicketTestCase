@@ -1,2 +1,6 @@
 server:
   port: 10101
+
+cluster:
+  host: 10.141.212.146
+  port: 31380

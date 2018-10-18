@@ -1,4 +1,4 @@
-package org.services.test.entity;
+package org.services.test.entity.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
