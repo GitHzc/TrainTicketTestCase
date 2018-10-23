@@ -5,23 +5,58 @@ public class TestTrace {
     private String testCaseId;
     private String entryService;
     private String entryApi;
-    private String entryTimestamp;
-    private String result;
+    private long entryTimestamp;
     private String testClass;
     private String testMethod;
-    private String error;
+    private String req_param;
+    private int expected_result;
+    private int error;
     private String y_issue_ms;
-    private String y_issue_dimen;
-
-    public String getTestTraceId() {
-        return testTraceId;
-    }
+    private String y_issue_dim_type;
+    private String y_issue_dim_content;
 
     @Override
     public String toString() {
         return testTraceId + "," + testCaseId + "," + entryService + "," + entryApi + ","
-                + entryTimestamp + "," + result + "," + testClass + "," + testMethod + ","
-                + error + "," + y_issue_ms + "," + y_issue_dimen + ";";
+                + entryTimestamp + "," + testClass + "," + testMethod + "," + req_param + ","
+                + expected_result + "," + error + "," + y_issue_ms + ","
+                + y_issue_dim_type + "," + y_issue_dim_content;
+    }
+
+    public String getReq_param() {
+        return req_param;
+    }
+
+    public void setReq_param(String req_param) {
+        this.req_param = req_param;
+    }
+
+    public int getExpected_result() {
+        return expected_result;
+    }
+
+    public void setExpected_result(int expected_result) {
+        this.expected_result = expected_result;
+    }
+
+    public String getY_issue_dim_type() {
+        return y_issue_dim_type;
+    }
+
+    public void setY_issue_dim_type(String y_issue_dim_type) {
+        this.y_issue_dim_type = y_issue_dim_type;
+    }
+
+    public String getY_issue_dim_content() {
+        return y_issue_dim_content;
+    }
+
+    public void setY_issue_dim_content(String y_issue_dim_content) {
+        this.y_issue_dim_content = y_issue_dim_content;
+    }
+
+    public String getTestTraceId() {
+        return testTraceId;
     }
 
     public void setTestTraceId(String testTraceId) {
@@ -52,20 +87,12 @@ public class TestTrace {
         this.entryApi = entryApi;
     }
 
-    public String getEntryTimestamp() {
+    public long getEntryTimestamp() {
         return entryTimestamp;
     }
 
-    public void setEntryTimestamp(String entryTimestamp) {
+    public void setEntryTimestamp(long entryTimestamp) {
         this.entryTimestamp = entryTimestamp;
-    }
-
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
     }
 
     public String getTestClass() {
@@ -84,11 +111,11 @@ public class TestTrace {
         this.testMethod = testMethod;
     }
 
-    public String getError() {
+    public int getError() {
         return error;
     }
 
-    public void setError(String error) {
+    public void setError(int error) {
         this.error = error;
     }
 
@@ -100,11 +127,4 @@ public class TestTrace {
         this.y_issue_ms = y_issue_ms;
     }
 
-    public String getY_issue_dimen() {
-        return y_issue_dimen;
-    }
-
-    public void setY_issue_dimen(String y_issue_dimen) {
-        this.y_issue_dimen = y_issue_dimen;
-    }
 }
