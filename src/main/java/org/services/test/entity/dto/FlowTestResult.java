@@ -6,7 +6,7 @@ import org.services.test.entity.TestTrace;
 import java.io.Serializable;
 import java.util.List;
 
-public class BookingFlowTestResult implements Serializable{
+public class FlowTestResult implements Serializable{
     private static final long serialVersionUID = 7454458135370741518L;
 
     private TestCase testCase;

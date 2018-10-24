@@ -1,6 +1,6 @@
 package org.services.test.controller;
 
-import org.services.test.entity.dto.BookingFlowTestResult;
+import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.entity.dto.LoginRequestDto;
 import org.services.test.entity.dto.LoginResponseDto;
 import org.services.test.service.BookingFlowService;
@@ -18,7 +18,7 @@ public class BookingFlowController {
     private BookingFlowService bookingFlowService;
 
     @GetMapping("/bookingflow")
-    public BookingFlowTestResult booking() {
+    public FlowTestResult booking() {
         return bookingFlowService.bookFlow();
     }
 

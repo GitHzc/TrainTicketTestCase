@@ -1,0 +1,90 @@
+package org.services.test.util;
+
+import org.services.test.entity.dto.*;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+public class ParamUtil {
+    /**********************************************
+     * generate random parameter for test method
+     **********************************************/
+    public static LoginRequestDto constructLoginRequestDto() {
+//        LoginRequestDto loginRequestDto = new LoginRequestDto();
+//        loginRequestDto.setEmail("fdse_microservices@163.com");
+//        loginRequestDto.setPassword("DefaultPassword");
+//        loginRequestDto.setVerificationCode("abcd");
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto();
+        loginRequestDto.setEmail("kylinxiang@fudan.edu.com");
+        loginRequestDto.setPassword("123456");
+        loginRequestDto.setVerificationCode("abcd");
+        return loginRequestDto;
+    }
+
+    public static QueryTicketRequestDto constructQueryTicketReqDto() {
+        QueryTicketRequestDto queryTicketRequestDto = new QueryTicketRequestDto();
+        queryTicketRequestDto.setStartingPlace("Shang Hai");
+        queryTicketRequestDto.setEndPlace("Su Zhou");
+        queryTicketRequestDto.setDepartureTime("2018-10-28");
+        return queryTicketRequestDto;
+    }
+
+    public static String getRandomContact(List<Contact> contacts) {
+        if (contacts.isEmpty()) {
+            return null;
+        } else {
+            return RandomUtil.getRandomElementInList(contacts).getId();
+        }
+
+    }
+
+    public static ExcuteRequestDto constructExecuteRequestDto(String orderId) {
+        ExcuteRequestDto excuteRequestDto = new ExcuteRequestDto();
+        excuteRequestDto.setOrderId(orderId);
+        return excuteRequestDto;
+    }
+
+    public static CollectRequestDto constructCollectRequestDto(String orderId) {
+        CollectRequestDto collectRequestDto = new CollectRequestDto();
+        collectRequestDto.setOrderId(orderId);
+        return collectRequestDto;
+    }
+
+    public static PaymentRequestDto constructPaymentRequestDto(String tripId, String orderId) {
+        PaymentRequestDto paymentRequestDto = new PaymentRequestDto();
+        paymentRequestDto.setOrderId(orderId);
+        paymentRequestDto.setTripId(tripId);
+        return paymentRequestDto;
+    }
+
+    public static ConfirmRequestDto constructConfirmRequestDto(String departureTime, String startingStation, String
+            endingStation, String tripId, String contactId) {
+        ConfirmRequestDto confirmRequestDto = new ConfirmRequestDto();
+        confirmRequestDto.setContactsId(contactId);
+        confirmRequestDto.setTripId(tripId);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        confirmRequestDto.setSeatType(2); // seat type 2, firstClassSeat
+        try {
+            confirmRequestDto.setDate(simpleDateFormat.parse(departureTime));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        confirmRequestDto.setFrom(startingStation);
+        confirmRequestDto.setTo(endingStation);
+        confirmRequestDto.setAssurance(0); // 不选保险
+        confirmRequestDto.setFoodType(0); // 不选吃的
+        return confirmRequestDto;
+    }
+
+    public static FoodRequestDto constructFoodRequestDto(String departureTime, String startingStation, String
+            endingStation, String tripId) {
+        FoodRequestDto foodRequestDto = new FoodRequestDto();
+        foodRequestDto.setDate(departureTime);
+        foodRequestDto.setStartStation(startingStation);
+        foodRequestDto.setEndStation(endingStation);
+        foodRequestDto.setTripId(tripId);
+        return foodRequestDto;
+    }
+}
