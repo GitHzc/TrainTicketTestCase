@@ -60,7 +60,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
         HttpEntity<QueryTicketRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
-        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/travel/query");
+        String uri = null;
+        if (dto.getEndPlace().equals(ServiceConstant.NAN_JING)) {
+            uri = "/travel2/query";
+        } else {
+            uri = "/travel/query";
+        }
+        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
         ResponseEntity<List<QueryTicketResponseDto>> ret = restTemplate.exchange(url, HttpMethod.POST, req,
                 new ParameterizedTypeReference<List<QueryTicketResponseDto>>() {
                 });
@@ -393,8 +399,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         List<QueryTicketResponseDto> queryTicketResponseDtos = queryTicketResponseDtosResp.getBody();
 
         TestTrace testTrace2 = new TestTrace();
-        testTrace2.setEntryApi("/travel/query");
-        testTrace2.setEntryService("ts-travel-service");
+        if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)){
+            testTrace2.setEntryApi("/travel2/query");
+            testTrace2.setEntryService("ts-travel2-service");
+        } else {
+            testTrace2.setEntryApi("/travel/query");
+            testTrace2.setEntryService("ts-travel-service");
+        }
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
         testTrace2.setError(AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()));
         testTrace2.setExpected_result(0);

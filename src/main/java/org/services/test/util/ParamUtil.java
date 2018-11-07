@@ -1,9 +1,11 @@
 package org.services.test.util;
 
+import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 public class ParamUtil {
@@ -11,23 +13,33 @@ public class ParamUtil {
      * generate random parameter for test method
      **********************************************/
     public static LoginRequestDto constructLoginRequestDto() {
-//        LoginRequestDto loginRequestDto = new LoginRequestDto();
-//        loginRequestDto.setEmail("fdse_microservices@163.com");
-//        loginRequestDto.setPassword("DefaultPassword");
-//        loginRequestDto.setVerificationCode("abcd");
-
         LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail("kylinxiang@fudan.edu.com");
-        loginRequestDto.setPassword("123456");
+        loginRequestDto.setEmail("fdse_microservices@163.com");
+        loginRequestDto.setPassword("DefaultPassword");
         loginRequestDto.setVerificationCode("abcd");
+
+//        LoginRequestDto loginRequestDto = new LoginRequestDto();
+//        loginRequestDto.setEmail("kylinxiang@fudan.edu.com");
+//        loginRequestDto.setPassword("123456");
+//        loginRequestDto.setVerificationCode("abcd");
         return loginRequestDto;
     }
 
     public static QueryTicketRequestDto constructQueryTicketReqDto() {
         QueryTicketRequestDto queryTicketRequestDto = new QueryTicketRequestDto();
-        queryTicketRequestDto.setStartingPlace("Shang Hai");
-        queryTicketRequestDto.setEndPlace("Su Zhou");
-        queryTicketRequestDto.setDepartureTime("2018-10-28");
+
+        // random select end station nanjing or suzhou
+        queryTicketRequestDto.setStartingPlace(ServiceConstant.SHANG_HAI);
+        if(RandomUtil.getRandomTrueOrFalse()){
+            queryTicketRequestDto.setEndPlace(ServiceConstant.NAN_JING);
+        } else {
+            queryTicketRequestDto.setEndPlace(ServiceConstant.SU_ZHOU);
+        }
+        // select tomorrow
+        Calendar car = Calendar.getInstance();
+        car.add(Calendar.DAY_OF_MONTH, +1);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        queryTicketRequestDto.setDepartureTime(simpleDateFormat.format(car.getTime()));
         return queryTicketRequestDto;
     }
 
