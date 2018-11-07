@@ -33,7 +33,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
     private static ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
 
-
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
         HttpEntity<LoginRequestDto> req = new HttpEntity<>(dto, httpHeaders);

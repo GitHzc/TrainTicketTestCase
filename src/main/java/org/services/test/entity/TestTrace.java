@@ -1,19 +1,66 @@
 package org.services.test.entity;
 
+import org.hibernate.annotations.GenericGenerator;
+import org.services.test.entity.constants.DBConstants;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name = DBConstants.TABLE_TEST_TRACE)
 public class TestTrace {
+
+    @Id
+    @Column(name = DBConstants.TEST_TRACE_ID)
+    @GeneratedValue(generator  = DBConstants.ID_STRATEGY)
+    @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.UUID)
     private String testTraceId;
+
+    @Column(name = DBConstants.TEST_CASE_ID)
     private String testCaseId;
+
+    @Column(name = DBConstants.ENTRY_SERVICE)
     private String entryService;
+
+    @Column(name = DBConstants.ENTRY_API)
     private String entryApi;
+
+    @Column(name = DBConstants.ENTRY_TIME_STAMP)
     private long entryTimestamp;
+
+    @Column(name = DBConstants.TEST_CLASS)
     private String testClass;
+
+    @Column(name = DBConstants.TEST_METHOD)
     private String testMethod;
+
+    @Column(name = DBConstants.REQ_PARAM, columnDefinition = "varchar(5000) COMMENT 'Request Parameter'")
     private String req_param;
+
+    @Column(name = DBConstants.EXPECTED_RESULT)
     private int expected_result;
+
+    @Column(name = DBConstants.ERROR)
     private int error;
+
+    @Column(name = DBConstants.Y_ISSUE_MS)
     private String y_issue_ms;
+
+    @Column(name = DBConstants.USER_TYPE)
     private String y_issue_dim_type;
+
+    @Column(name = DBConstants.Y_ISSUE_DIM_CONTENT, columnDefinition = "varchar(5000) COMMENT 'Issue Dimension Content'")
     private String y_issue_dim_content;
+
+    @Column(name = DBConstants.SEQUENCE)
+    private int sequence;
+
+    public int getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
+    }
 
     @Override
     public String toString() {
@@ -25,6 +72,14 @@ public class TestTrace {
 
     public String getReq_param() {
         return req_param;
+    }
+
+    public String getTestCaseId() {
+        return testCaseId;
+    }
+
+    public void setTestCaseId(String testCaseId) {
+        this.testCaseId = testCaseId;
     }
 
     public void setReq_param(String req_param) {
@@ -61,14 +116,6 @@ public class TestTrace {
 
     public void setTestTraceId(String testTraceId) {
         this.testTraceId = testTraceId;
-    }
-
-    public String getTestCaseId() {
-        return testCaseId;
-    }
-
-    public void setTestCaseId(String testCaseId) {
-        this.testCaseId = testCaseId;
     }
 
     public String getEntryService() {
