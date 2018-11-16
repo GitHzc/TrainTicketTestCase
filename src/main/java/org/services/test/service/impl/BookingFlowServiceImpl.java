@@ -245,6 +245,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace8.setEntryApi("/execute/execute");
         testTrace8.setEntryService("ts-execute-service");
         testTrace8.setEntryTimestamp(System.currentTimeMillis());
+        // TODO
+        // enterBasicMsg status false
+
         testTrace8.setError(AssertUtil.assertByStatusCode(enterBasicMsgResp.getStatusCodeValue()));
         testTrace8.setExpected_result(0);
         try {
@@ -270,6 +273,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace7.setEntryApi("/execute/collected");
         testTrace7.setEntryService("ts-execute-service");
         testTrace7.setEntryTimestamp(System.currentTimeMillis());
+        // TODO
+        // collectBasicMsg  status false
         testTrace7.setError(AssertUtil.assertByStatusCode(collectBasicMsgResp.getStatusCodeValue()));
         testTrace7.setExpected_result(0);
         try {
@@ -295,6 +300,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace6.setEntryApi("/inside_payment/pay");
         testTrace6.setEntryService("ts-inside-payment-service");
         testTrace6.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // paymentStatus   是 false
+
         testTrace6.setError(AssertUtil.assertByStatusCode(paymentStatusResp.getStatusCodeValue()));
         testTrace6.setExpected_result(0);
         try {
@@ -321,6 +329,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setEntryApi("/preserve");
         testTrace5.setEntryService("ts-preserve-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        //  confirmResponseDto 返回 status  false
+
         testTrace5.setError(AssertUtil.assertByStatusCode(confirmResponseDtoResp.getStatusCodeValue()));
         testTrace5.setExpected_result(0);
         try {
@@ -347,6 +358,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace4.setEntryApi("/food/getFood");
         testTrace4.setEntryService("ts-food-service");
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // 判断 foodResponseDto 的status 是否为false
         testTrace4.setError(AssertUtil.assertByStatusCode(foodResponseDtoResp.getStatusCodeValue()));
         testTrace4.setExpected_result(0);
         try {
@@ -373,6 +386,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setEntryApi("/contacts/findContacts");
         testTrace3.setEntryService("ts-contacts-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // contacts is empty , token error or request time error
         testTrace3.setError(AssertUtil.assertByStatusCode(contactsResp.getStatusCodeValue()));
         testTrace3.setExpected_result(0);
         try {
@@ -407,6 +422,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             testTrace2.setEntryService("ts-travel-service");
         }
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
+        // toDo
+        // queryTicketResponseDtos  空数组
+
         testTrace2.setError(AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()));
         testTrace2.setExpected_result(0);
         try {
@@ -439,6 +457,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // loginResponseDto 返回 status false
 
         testTrace.setError(AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()));
         testTrace.setExpected_result(0);

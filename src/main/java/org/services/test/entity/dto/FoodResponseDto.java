@@ -7,9 +7,34 @@ import java.util.Map;
 public class FoodResponseDto extends BasicMessage implements Serializable {
     private static final long serialVersionUID = 2095263371638513466L;
 
+    private boolean status;
+
+    private String message;
+
     private List<TrainFood> trainFoodList;
 
     private Map<String, List<FoodStore>> foodStoreListMap;
+
+
+    @Override
+    public boolean isStatus() {
+        return status;
+    }
+
+    @Override
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
     public List<TrainFood> getTrainFoodList() {
         return trainFoodList;
