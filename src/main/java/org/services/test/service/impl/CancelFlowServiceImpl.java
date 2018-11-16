@@ -185,6 +185,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace5.setEntryApi("/cancelOrder");
         testTrace5.setEntryService("ts-cancel-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // basicMessage  status false
+
         testTrace5.setError(AssertUtil.assertByStatusCode(basicMessageResp.getStatusCodeValue()));
         testTrace5.setExpected_result(0);
         try {
@@ -216,6 +219,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace4.setEntryApi("/cancelCalculateRefund");
         testTrace4.setEntryService("ts-cancel-service");
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
+        // todo
+        // refundResponseDto  status 变为 false
+
         testTrace4.setError(AssertUtil.assertByStatusCode(refundResponseDtoResp.getStatusCodeValue()));
         testTrace4.setExpected_result(0);
         try {
@@ -244,6 +250,10 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace3.setEntryApi("/orderOther/query");
         testTrace3.setEntryService("ts-order-other-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
+
+        // todo
+        // orderOthers 查询返回空
+
         testTrace3.setError(AssertUtil.assertByStatusCode(orderOthersResp.getStatusCodeValue()));
         testTrace3.setExpected_result(0);
         try {
@@ -270,6 +280,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace2.setEntryApi("/order/query");
         testTrace2.setEntryService("ts-order-service");
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
+        // orders 为 空数组
+        // todo
+
         testTrace2.setError(AssertUtil.assertByStatusCode(queryOrderResponseDtosResp.getStatusCodeValue()));
         testTrace2.setExpected_result(0);
         try {
@@ -301,6 +314,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
+        // TODO
+        // loginResponseDto 返回 status false
+
         testTrace.setError(AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()));
         testTrace.setExpected_result(0);
         try {
