@@ -439,6 +439,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
+
         testTrace.setError(AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()));
         testTrace.setExpected_result(0);
         try {
