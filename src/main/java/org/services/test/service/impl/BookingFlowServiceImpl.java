@@ -7,6 +7,8 @@ import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.repository.TestCaseRepository;
+import org.services.test.repository.TestTraceRepository;
 import org.services.test.service.BookingFlowService;
 import org.services.test.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private TestTraceRepository testTraceRepository;
 
     private static ThreadLocal<String> testCaseIdThreadLocal = new ThreadLocal<>();
 
@@ -260,7 +265,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace8.setTestMethod("enter");
         testTrace8.setTestTraceId(enterTraceId);
         testTracesThreadLocal.get().add(testTrace8);
-        System.out.println(testTrace8);
+        System.out.println("----------" + testTrace8);
     }
 
     private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
@@ -287,7 +292,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace7.setTestMethod("collect");
         testTrace7.setTestTraceId(collectTraceId);
         testTracesThreadLocal.get().add(testTrace7);
-        System.out.println(testTrace7);
+        System.out.println("----------" + testTrace7);
     }
 
     private void testTicketPayment(Map<String, List<String>> headers, PaymentRequestDto paymentRequestDto) {
@@ -315,7 +320,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace6.setTestMethod("pay");
         testTrace6.setTestTraceId(paymentTraceId);
         testTracesThreadLocal.get().add(testTrace6);
-        System.out.println(testTrace6);
+        System.out.println("----------" + testTrace6);
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
@@ -344,7 +349,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
         testTracesThreadLocal.get().add(testTrace5);
-        System.out.println(testTrace5);
+        System.out.println("----------" + testTrace5);
         return confirmResponseDto;
     }
 
@@ -372,7 +377,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace4.setTestMethod("getFood");
         testTrace4.setTestTraceId(foodTraceId);
         testTracesThreadLocal.get().add(testTrace4);
-        System.out.println(testTrace4);
+        System.out.println("----------" + testTrace4);
     }
 
     private List<Contact> testQueryContact(Map<String, List<String>> headers) {
@@ -400,7 +405,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setTestMethod("getContacts");
         testTrace3.setTestTraceId(contactTraceId);
         testTracesThreadLocal.get().add(testTrace3);
-        System.out.println(testTrace3);
+        System.out.println("----------" + testTrace3);
         return contacts;
     }
 
@@ -437,7 +442,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace2.setTestMethod("queryTicket");
         testTrace2.setTestTraceId(queryTicketTraceId);
         testTracesThreadLocal.get().add(testTrace2);
-        System.out.println(testTrace2);
+        System.out.println("----------" + testTrace2);
         return queryTicketResponseDtos;
     }
 
@@ -472,7 +477,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
         testTracesThreadLocal.get().add(testTrace);
-        System.out.println(testTrace);
+        System.out.println("------- " + testTrace);
+        testTraceRepository.save(testTrace);
+
         return loginResponseDto;
     }
 }
