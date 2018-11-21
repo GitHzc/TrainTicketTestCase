@@ -4,10 +4,13 @@ import org.hibernate.annotations.GenericGenerator;
 import org.services.test.entity.constants.DBConstants;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = DBConstants.TABLE_TEST_CASE)
-public class TestCase {
+public class TestCase implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id()
     @Column(name = DBConstants.TEST_CASE_ID)
