@@ -321,6 +321,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace6.setTestTraceId(paymentTraceId);
         testTracesThreadLocal.get().add(testTrace6);
         System.out.println("----------" + testTrace6);
+        testTraceRepository.save(testTrace6);
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
@@ -350,6 +351,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setTestTraceId(confirmTraceId);
         testTracesThreadLocal.get().add(testTrace5);
         System.out.println("----------" + testTrace5);
+        testTraceRepository.save(testTrace5);
         return confirmResponseDto;
     }
 
@@ -377,6 +379,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace4.setTestMethod("getFood");
         testTrace4.setTestTraceId(foodTraceId);
         testTracesThreadLocal.get().add(testTrace4);
+        testTraceRepository.save(testTrace4);
         System.out.println("----------" + testTrace4);
     }
 
@@ -406,6 +409,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setTestTraceId(contactTraceId);
         testTracesThreadLocal.get().add(testTrace3);
         System.out.println("----------" + testTrace3);
+        testTraceRepository.save(testTrace3);
         return contacts;
     }
 
@@ -443,6 +447,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace2.setTestTraceId(queryTicketTraceId);
         testTracesThreadLocal.get().add(testTrace2);
         System.out.println("----------" + testTrace2);
+        testTraceRepository.save(testTrace2);
         return queryTicketResponseDtos;
     }
 
