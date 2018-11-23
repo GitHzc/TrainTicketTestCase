@@ -1,5 +1,6 @@
 package org.services.test.config;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -14,7 +15,7 @@ import java.util.List;
 @Configuration
 public class WebConfig {
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() {
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
         //Add the Jackson Message converter
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -22,7 +23,11 @@ public class WebConfig {
         // not only application/*json, which is the default behaviour
         converter.setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
         messageConverters.add(converter);
-        RestTemplate restTemplate = new RestTemplate();
+
+        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+        RestTemplate restTemplate = restTemplateBuilder
+                .errorHandler(new RestTemplateResponseErrorHandler())
+                .build();
         restTemplate.setMessageConverters(messageConverters);
 
         return restTemplate;

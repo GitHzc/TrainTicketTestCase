@@ -329,22 +329,26 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setEntryApi("/preserve");
         testTrace5.setEntryService("ts-preserve-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
-        // todo
-        //  confirmResponseDto 返回 status  false
-
-        testTrace5.setError(AssertUtil.assertByStatusCode(confirmResponseDtoResp.getStatusCodeValue()));
         testTrace5.setExpected_result(0);
+        testTrace5.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace5.setTestClass("BookingFlowTestClass");
+        testTrace5.setTestMethod("preserve");
+        testTrace5.setTestTraceId(confirmTraceId);
+
         try {
             testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace5.setTestCaseId(testCaseIdThreadLocal.get());
-        testTrace5.setTestClass("BookingFlowTestClass");
-        testTrace5.setTestMethod("preserve");
-        testTrace5.setTestTraceId(confirmTraceId);
+
+        if (AssertUtil.assertByStatusCode(confirmResponseDtoResp.getStatusCodeValue()) == 1) {
+            testTrace5.setError(1);
+            testTrace5.setY_issue_dim_type("seq");
+            testTrace5.setY_issue_dim_content("");
+            testTrace5.setY_issue_ms("ts-preserve-service");
+        }
+
         testTracesThreadLocal.get().add(testTrace5);
-        System.out.println(testTrace5);
         return confirmResponseDto;
     }
 
@@ -382,13 +386,16 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
         List<Contact> contacts = contactsResp.getBody();
 
+        if (null == contacts || contacts.isEmpty() || AssertUtil.assertByStatusCode(contactsResp.getStatusCodeValue()
+        ) == 1) {
+            throw new RuntimeException("query contact error");
+        }
+
         TestTrace testTrace3 = new TestTrace();
+        testTrace3.setError(0);
         testTrace3.setEntryApi("/contacts/findContacts");
         testTrace3.setEntryService("ts-contacts-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
-        // todo
-        // contacts is empty , token error or request time error
-        testTrace3.setError(AssertUtil.assertByStatusCode(contactsResp.getStatusCodeValue()));
         testTrace3.setExpected_result(0);
         try {
             testTrace3.setReq_param(objectMapper.writeValueAsString(null));
@@ -412,20 +419,27 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ResponseEntity<List<QueryTicketResponseDto>> queryTicketResponseDtosResp = queryTicket(queryTicketRequestDto,
                 headers);
         List<QueryTicketResponseDto> queryTicketResponseDtos = queryTicketResponseDtosResp.getBody();
+        if (null == queryTicketResponseDtos || queryTicketResponseDtos.isEmpty() ||
+                AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()) == 1) {
+            throw new RuntimeException("No ticket found");
+        }
 
         TestTrace testTrace2 = new TestTrace();
-        if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)){
+        if (AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()) == 1) {
+            testTrace2.setError(1);
+            throw new RuntimeException("query ticket error");
+        } else {
+            testTrace2.setError(0);
+        }
+        if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)) {
             testTrace2.setEntryApi("/travel2/query");
             testTrace2.setEntryService("ts-travel2-service");
         } else {
             testTrace2.setEntryApi("/travel/query");
             testTrace2.setEntryService("ts-travel-service");
         }
+        testTrace2.setSequence(2);
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
-        // toDo
-        // queryTicketResponseDtos  空数组
-
-        testTrace2.setError(AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()));
         testTrace2.setExpected_result(0);
         try {
             testTrace2.setReq_param(objectMapper.writeValueAsString(queryTicketRequestDto));
@@ -436,8 +450,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace2.setTestClass("BookingFlowTestClass");
         testTrace2.setTestMethod("queryTicket");
         testTrace2.setTestTraceId(queryTicketTraceId);
+
         testTracesThreadLocal.get().add(testTrace2);
-        System.out.println(testTrace2);
         return queryTicketResponseDtos;
     }
 
@@ -453,26 +467,29 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
         LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
 
+        if (null == loginResponseDto || AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()) == 1 ||
+                !loginResponseDto.isStatus()) {
+            throw new RuntimeException("login error");
+        }
+
         TestTrace testTrace = new TestTrace();
+        testTrace.setError(0);
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
-        // todo
-        // loginResponseDto 返回 status false
-
-        testTrace.setError(AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()));
+        testTrace.setSequence(1);
         testTrace.setExpected_result(0);
+        testTrace.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace.setTestClass("BookingFlowTestClass");
+        testTrace.setTestMethod("login");
+        testTrace.setTestTraceId(loginTraceId);
         try {
             testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace.setTestCaseId(testCaseIdThreadLocal.get());
-        testTrace.setTestClass("BookingFlowTestClass");
-        testTrace.setTestMethod("login");
-        testTrace.setTestTraceId(loginTraceId);
+
         testTracesThreadLocal.get().add(testTrace);
-        System.out.println(testTrace);
         return loginResponseDto;
     }
 }
