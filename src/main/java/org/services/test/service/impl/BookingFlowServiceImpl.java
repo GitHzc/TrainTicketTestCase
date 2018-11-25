@@ -2,17 +2,23 @@ package org.services.test.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.services.test.cache.ThreadLocalCache;
 import org.services.test.config.ClusterConfig;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.repository.TestCaseRepository;
+import org.services.test.repository.TestTraceRepository;
 import org.services.test.service.BookingFlowService;
 import org.services.test.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -29,9 +35,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static ThreadLocal<String> testCaseIdThreadLocal = new ThreadLocal<>();
+    @Autowired
+    private TestCaseRepository testCaseRepository;
 
-    private static ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
+    @Autowired
+    private TestTraceRepository testTraceRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(BookingFlowServiceImpl.class);
+
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
@@ -147,8 +158,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     public FlowTestResult bookFlow() {
 
         List<TestTrace> traces = new ArrayList<>();
-        testTracesThreadLocal.set(traces);
-        testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
+        ThreadLocalCache.testTracesThreadLocal.set(traces);
+        ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
 
         /******************
          * 1st step: login
@@ -159,13 +170,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
-        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(testCaseIdThreadLocal.get()));
+        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
         // construct test case info
         TestCase testCase = new TestCase();
         testCase.setUserId(loginRequestDto.getEmail());
         testCase.setSessionId(headers.get(ServiceConstant.COOKIE).toString());
-        testCase.setTestCaseId(testCaseIdThreadLocal.get());
+        testCase.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testCase.setUserDetail("user details");
         testCase.setUserType("normal");
 
@@ -203,6 +214,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
 
+        if (null == confirmRequestDto || null == confirmResponseDto.getOrder()) {
+            FlowTestResult bftr = new FlowTestResult();
+            bftr.setTestCase(testCase);
+            bftr.setTestTraces(traces);
+            return bftr;
+        }
         if (RandomUtil.getRandomTrueOrFalse()) {
             /*********************
              * 6th step: payment
@@ -256,12 +273,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace8.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace8.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace8.setTestClass("BookingFlowTestClass");
         testTrace8.setTestMethod("enter");
         testTrace8.setTestTraceId(enterTraceId);
-        testTracesThreadLocal.get().add(testTrace8);
-        System.out.println(testTrace8);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace8);
+        logger.info(testTrace8.toString());
     }
 
     private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
@@ -284,12 +301,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace7.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace7.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace7.setTestClass("BookingFlowTestClass");
         testTrace7.setTestMethod("collect");
         testTrace7.setTestTraceId(collectTraceId);
-        testTracesThreadLocal.get().add(testTrace7);
-        System.out.println(testTrace7);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace7);
+        logger.info(testTrace7.toString());
     }
 
     private void testTicketPayment(Map<String, List<String>> headers, PaymentRequestDto paymentRequestDto) {
@@ -302,8 +319,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace6.setEntryApi("/inside_payment/pay");
         testTrace6.setEntryService("ts-inside-payment-service");
         testTrace6.setEntryTimestamp(System.currentTimeMillis());
-        // todo
-        // paymentStatus   是 false
 
         testTrace6.setError(AssertUtil.assertByStatusCode(paymentStatusResp.getStatusCodeValue()));
         testTrace6.setExpected_result(0);
@@ -313,12 +328,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace6.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace6.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace6.setTestClass("BookingFlowTestClass");
         testTrace6.setTestMethod("pay");
         testTrace6.setTestTraceId(paymentTraceId);
-        testTracesThreadLocal.get().add(testTrace6);
-        System.out.println(testTrace6);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace6);
+        logger.info(testTrace6.toString());
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
@@ -333,7 +348,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setEntryService("ts-preserve-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
         testTrace5.setExpected_result(0);
-        testTrace5.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace5.setTestClass("BookingFlowTestClass");
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
@@ -347,11 +362,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         if (AssertUtil.assertByStatusCode(confirmResponseDtoResp.getStatusCodeValue()) == 1) {
             testTrace5.setError(1);
             testTrace5.setY_issue_dim_type("seq");
-            testTrace5.setY_issue_dim_content("");
+            testTrace5.setY_issue_dim_content("{\"ts-contacts-service,ts-security-service\": 0}");
             testTrace5.setY_issue_ms("ts-preserve-service");
         }
 
-        testTracesThreadLocal.get().add(testTrace5);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
+        logger.info(testTrace5.toString());
         return confirmResponseDto;
     }
 
@@ -375,12 +391,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace4.setSequence(4);
-        testTrace4.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace4.setTestClass("BookingFlowTestClass");
         testTrace4.setTestMethod("getFood");
         testTrace4.setTestTraceId(foodTraceId);
-        testTracesThreadLocal.get().add(testTrace4);
-        System.out.println(testTrace4);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
+        logger.info(testTrace4.toString());
     }
 
     private List<Contact> testQueryContact(Map<String, List<String>> headers) {
@@ -407,12 +423,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace3.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace3.setTestClass("BookingFlowTestClass");
         testTrace3.setTestMethod("getContacts");
         testTrace3.setTestTraceId(contactTraceId);
-        testTracesThreadLocal.get().add(testTrace3);
-        System.out.println(testTrace3);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
+        logger.info(testTrace3.toString());
+        logger.info(testTrace3.toString());
         return contacts;
     }
 
@@ -451,12 +468,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace2.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace2.setTestClass("BookingFlowTestClass");
         testTrace2.setTestMethod("queryTicket");
         testTrace2.setTestTraceId(queryTicketTraceId);
 
-        testTracesThreadLocal.get().add(testTrace2);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
+        logger.info(testTrace2.toString());
         return queryTicketResponseDtos;
     }
 
@@ -465,7 +483,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        loginHeaders.add(ServiceConstant.TEST_CASE_ID, testCaseIdThreadLocal.get());
+        loginHeaders.add(ServiceConstant.TEST_CASE_ID, ThreadLocalCache.testCaseIdThreadLocal.get());
         loginHeaders.add(ServiceConstant.TEST_TRACE_ID, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -484,7 +502,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setEntryTimestamp(System.currentTimeMillis());
         testTrace.setSequence(1);
         testTrace.setExpected_result(0);
-        testTrace.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace.setTestClass("BookingFlowTestClass");
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
@@ -494,7 +512,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
 
-        testTracesThreadLocal.get().add(testTrace);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
+        logger.info(testTrace.toString());
         return loginResponseDto;
+    }
+
+    @Transactional
+    protected void persistTestData(TestCase testCase, List<TestTrace> testTraces) {
+        testCaseRepository.save(testCase);
+        testTraceRepository.saveAll(testTraces);
     }
 }

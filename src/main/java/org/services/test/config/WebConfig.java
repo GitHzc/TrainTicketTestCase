@@ -1,5 +1,6 @@
 package org.services.test.config;
 
+import org.services.test.config.interceptor.ThreadLocalCleanInterceptor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,13 +8,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
     @Bean
     public RestTemplate restTemplate() {
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
@@ -31,5 +34,10 @@ public class WebConfig {
         restTemplate.setMessageConverters(messageConverters);
 
         return restTemplate;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new ThreadLocalCleanInterceptor());
     }
 }
