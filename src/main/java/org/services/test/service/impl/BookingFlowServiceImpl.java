@@ -180,6 +180,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testCase.setUserDetail("user details");
         testCase.setUserType("normal");
 
+        ThreadLocalCache.testCaseThreadLocal.set(testCase);
+
         /***************************
          * 2nd step: query ticket
          ***************************/
@@ -244,6 +246,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             }
         }
 
+        persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
+
         // construct response
         FlowTestResult bftr = new FlowTestResult();
         bftr.setTestCase(testCase);
@@ -254,18 +258,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
     private void testEnterStation(Map<String, List<String>> headers, ExcuteRequestDto excuteRequestDto) {
         String enterTraceId = UUIDUtil.generateUUID();
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(enterTraceId));
-        ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
-        BasicMessage enterBasicMsg = enterBasicMsgResp.getBody();
 
         TestTrace testTrace8 = new TestTrace();
         testTrace8.setEntryApi("/execute/execute");
         testTrace8.setEntryService("ts-execute-service");
         testTrace8.setEntryTimestamp(System.currentTimeMillis());
-        // TODO
-        // enterBasicMsg status false
-
-        testTrace8.setError(AssertUtil.assertByStatusCode(enterBasicMsgResp.getStatusCodeValue()));
+        testTrace8.setError(0);
         testTrace8.setExpected_result(0);
         testTrace8.setSequence(8);
         try {
@@ -279,21 +277,20 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace8.setTestTraceId(enterTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace8);
         logger.info(testTrace8.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(enterTraceId));
+        ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
+        enterBasicMsgResp.getBody();
     }
 
     private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
         String collectTraceId = UUIDUtil.generateUUID();
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(collectTraceId));
-        ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
-        BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
 
         TestTrace testTrace7 = new TestTrace();
         testTrace7.setEntryApi("/execute/collected");
         testTrace7.setEntryService("ts-execute-service");
         testTrace7.setEntryTimestamp(System.currentTimeMillis());
-        // TODO
-        // collectBasicMsg  status false
-        testTrace7.setError(AssertUtil.assertByStatusCode(collectBasicMsgResp.getStatusCodeValue()));
+        testTrace7.setError(0);
         testTrace7.setExpected_result(0);
         testTrace7.setSequence(7);
         try {
@@ -307,20 +304,21 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace7.setTestTraceId(collectTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace7);
         logger.info(testTrace7.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(collectTraceId));
+        ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
+        BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
     }
 
     private void testTicketPayment(Map<String, List<String>> headers, PaymentRequestDto paymentRequestDto) {
         String paymentTraceId = UUIDUtil.generateUUID();
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(paymentTraceId));
-        ResponseEntity<Boolean> paymentStatusResp = pay(paymentRequestDto, headers);
-        boolean paymentStatus = paymentStatusResp.getBody();
 
         TestTrace testTrace6 = new TestTrace();
         testTrace6.setEntryApi("/inside_payment/pay");
         testTrace6.setEntryService("ts-inside-payment-service");
         testTrace6.setEntryTimestamp(System.currentTimeMillis());
 
-        testTrace6.setError(AssertUtil.assertByStatusCode(paymentStatusResp.getStatusCodeValue()));
+        testTrace6.setError(0);
         testTrace6.setExpected_result(0);
         testTrace6.setSequence(6);
         try {
@@ -334,14 +332,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace6.setTestTraceId(paymentTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace6);
         logger.info(testTrace6.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(paymentTraceId));
+        pay(paymentRequestDto, headers);
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
             confirmRequestDto) {
         String confirmTraceId = UUIDUtil.generateUUID();
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(confirmTraceId));
-        ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
-        ConfirmResponseDto confirmResponseDto = confirmResponseDtoResp.getBody();
 
         TestTrace testTrace5 = new TestTrace();
         testTrace5.setEntryApi("/preserve");
@@ -353,37 +351,31 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
         testTrace5.setSequence(5);
+        testTrace5.setError(0);
         try {
             testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-
-        if (AssertUtil.assertByStatusCode(confirmResponseDtoResp.getStatusCodeValue()) == 1) {
-            testTrace5.setError(1);
-            testTrace5.setY_issue_dim_type("seq");
-            testTrace5.setY_issue_dim_content("{\"ts-contacts-service,ts-security-service\": 0}");
-            testTrace5.setY_issue_ms("ts-preserve-service");
-        }
-
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         logger.info(testTrace5.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(confirmTraceId));
+        ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
+        ConfirmResponseDto confirmResponseDto = confirmResponseDtoResp.getBody();
+
+
         return confirmResponseDto;
     }
 
     private void testQueryFood(Map<String, List<String>> headers, FoodRequestDto foodRequestDto) {
         String foodTraceId = UUIDUtil.generateUUID();
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(foodTraceId));
-        ResponseEntity<FoodResponseDto> foodResponseDtoResp = getFood(foodRequestDto, headers);
-        FoodResponseDto foodResponseDto = foodResponseDtoResp.getBody();
 
         TestTrace testTrace4 = new TestTrace();
         testTrace4.setEntryApi("/food/getFood");
         testTrace4.setEntryService("ts-food-service");
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
-        // todo
-        // 判断 foodResponseDto 的status 是否为false
-        testTrace4.setError(AssertUtil.assertByStatusCode(foodResponseDtoResp.getStatusCodeValue()));
+        testTrace4.setError(0);
         testTrace4.setExpected_result(0);
         try {
             testTrace4.setReq_param(objectMapper.writeValueAsString(foodRequestDto));
@@ -397,19 +389,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace4.setTestTraceId(foodTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
         logger.info(testTrace4.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(foodTraceId));
+        ResponseEntity<FoodResponseDto> foodResponseDtoResp = getFood(foodRequestDto, headers);
+        FoodResponseDto foodResponseDto = foodResponseDtoResp.getBody();
     }
 
     private List<Contact> testQueryContact(Map<String, List<String>> headers) {
         String contactTraceId = UUIDUtil.generateUUID();
-
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(contactTraceId));
-        ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
-        List<Contact> contacts = contactsResp.getBody();
-
-        if (null == contacts || contacts.isEmpty() || AssertUtil.assertByStatusCode(contactsResp.getStatusCodeValue()
-        ) == 1) {
-            throw new RuntimeException("query contact error");
-        }
 
         TestTrace testTrace3 = new TestTrace();
         testTrace3.setError(0);
@@ -429,7 +416,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setTestTraceId(contactTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
         logger.info(testTrace3.toString());
-        logger.info(testTrace3.toString());
+
+        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(contactTraceId));
+        ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
+        List<Contact> contacts = contactsResp.getBody();
+
         return contacts;
     }
 
@@ -438,21 +429,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String queryTicketTraceId = UUIDUtil.generateUUID();
 
         headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(queryTicketTraceId));
-        ResponseEntity<List<QueryTicketResponseDto>> queryTicketResponseDtosResp = queryTicket(queryTicketRequestDto,
-                headers);
-        List<QueryTicketResponseDto> queryTicketResponseDtos = queryTicketResponseDtosResp.getBody();
-        if (null == queryTicketResponseDtos || queryTicketResponseDtos.isEmpty() ||
-                AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()) == 1) {
-            throw new RuntimeException("No ticket found");
-        }
 
         TestTrace testTrace2 = new TestTrace();
-        if (AssertUtil.assertByStatusCode(queryTicketResponseDtosResp.getStatusCodeValue()) == 1) {
-            testTrace2.setError(1);
-            throw new RuntimeException("query ticket error");
-        } else {
-            testTrace2.setError(0);
-        }
+        testTrace2.setError(0);
         if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)) {
             testTrace2.setEntryApi("/travel2/query");
             testTrace2.setEntryService("ts-travel2-service");
@@ -472,9 +451,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace2.setTestClass("BookingFlowTestClass");
         testTrace2.setTestMethod("queryTicket");
         testTrace2.setTestTraceId(queryTicketTraceId);
-
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
         logger.info(testTrace2.toString());
+
+        ResponseEntity<List<QueryTicketResponseDto>> queryTicketResponseDtosResp = queryTicket(queryTicketRequestDto,
+                headers);
+        List<QueryTicketResponseDto> queryTicketResponseDtos = queryTicketResponseDtosResp.getBody();
         return queryTicketResponseDtos;
     }
 
@@ -486,14 +468,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         loginHeaders.add(ServiceConstant.TEST_CASE_ID, ThreadLocalCache.testCaseIdThreadLocal.get());
         loginHeaders.add(ServiceConstant.TEST_TRACE_ID, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
-        LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
-
-        if (null == loginResponseDto || AssertUtil.assertByStatusCode(loginResponseDtoResp.getStatusCodeValue()) == 1 ||
-                !loginResponseDto.isStatus()) {
-            throw new RuntimeException("login error");
-        }
 
         TestTrace testTrace = new TestTrace();
         testTrace.setError(0);
@@ -511,14 +485,17 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
         logger.info(testTrace.toString());
+
+        ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
+        LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
+
         return loginResponseDto;
     }
 
     @Transactional
-    protected void persistTestData(TestCase testCase, List<TestTrace> testTraces) {
+    public void persistTestData(TestCase testCase, List<TestTrace> testTraces) {
         testCaseRepository.save(testCase);
         testTraceRepository.saveAll(testTraces);
     }
