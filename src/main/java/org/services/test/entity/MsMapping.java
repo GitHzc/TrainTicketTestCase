@@ -23,15 +23,7 @@ public enum MsMapping {
         return api;
     }
 
-    public void setApi(String api) {
-        this.api = api;
-    }
-
     public String getServiceName() {
         return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
     }
 }
