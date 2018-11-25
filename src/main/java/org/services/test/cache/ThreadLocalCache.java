@@ -17,6 +17,7 @@ public class ThreadLocalCache {
     public static void threadLocalClean() {
         testCaseIdThreadLocal.remove();
         testTracesThreadLocal.remove();
+        testCaseThreadLocal.remove();
         logger.info("clean ThreadLocal");
     }
 }
