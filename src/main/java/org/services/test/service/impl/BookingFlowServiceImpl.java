@@ -250,6 +250,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         testTrace8.setError(AssertUtil.assertByStatusCode(enterBasicMsgResp.getStatusCodeValue()));
         testTrace8.setExpected_result(0);
+        testTrace8.setSequence(8);
         try {
             testTrace8.setReq_param(objectMapper.writeValueAsString(excuteRequestDto));
         } catch (JsonProcessingException e) {
@@ -277,6 +278,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // collectBasicMsg  status false
         testTrace7.setError(AssertUtil.assertByStatusCode(collectBasicMsgResp.getStatusCodeValue()));
         testTrace7.setExpected_result(0);
+        testTrace7.setSequence(7);
         try {
             testTrace7.setReq_param(objectMapper.writeValueAsString(collectRequestDto));
         } catch (JsonProcessingException e) {
@@ -305,6 +307,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         testTrace6.setError(AssertUtil.assertByStatusCode(paymentStatusResp.getStatusCodeValue()));
         testTrace6.setExpected_result(0);
+        testTrace6.setSequence(6);
         try {
             testTrace6.setReq_param(objectMapper.writeValueAsString(paymentRequestDto));
         } catch (JsonProcessingException e) {
@@ -334,7 +337,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace5.setTestClass("BookingFlowTestClass");
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
-
+        testTrace5.setSequence(5);
         try {
             testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
         } catch (JsonProcessingException e) {
@@ -371,6 +374,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+        testTrace4.setSequence(4);
         testTrace4.setTestCaseId(testCaseIdThreadLocal.get());
         testTrace4.setTestClass("BookingFlowTestClass");
         testTrace4.setTestMethod("getFood");
@@ -397,6 +401,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setEntryService("ts-contacts-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
         testTrace3.setExpected_result(0);
+        testTrace3.setSequence(3);
         try {
             testTrace3.setReq_param(objectMapper.writeValueAsString(null));
         } catch (JsonProcessingException e) {
