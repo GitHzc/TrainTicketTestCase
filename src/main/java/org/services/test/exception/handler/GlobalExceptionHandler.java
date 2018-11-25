@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
         testTraces.forEach(x -> {
             if (x.getEntryApi().equals(e.getErrorBody().getPath())) {
                 x.setError(1);
+                x.setExpected_result(1);
                 x.setY_issue_ms("test");
                 x.setY_issue_dim_content("test");
                 x.setY_issue_dim_type("seq");

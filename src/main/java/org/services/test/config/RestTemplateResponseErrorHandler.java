@@ -23,8 +23,7 @@ public class RestTemplateResponseErrorHandler
             throws IOException {
 
         // Ignore exception
-        return (
-                httpResponse.getStatusCode().series() == CLIENT_ERROR
+        return (httpResponse.getStatusCode().series() == CLIENT_ERROR
                         || httpResponse.getStatusCode().series() == SERVER_ERROR);
     }
 

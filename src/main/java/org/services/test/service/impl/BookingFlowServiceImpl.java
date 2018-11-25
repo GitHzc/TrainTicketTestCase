@@ -278,8 +278,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace8);
         logger.info(testTrace8.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + enterTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                enterTraceId));
         ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
         enterBasicMsgResp.getBody();
     }
@@ -306,8 +306,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace7);
         logger.info(testTrace7.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + collectTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                collectTraceId));
         ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
         BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
     }
@@ -335,8 +335,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace6);
         logger.info(testTrace6.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + paymentTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                paymentTraceId));
         pay(paymentRequestDto, headers);
     }
 
@@ -363,8 +363,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         logger.info(testTrace5.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + confirmTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                confirmTraceId));
         ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
         ConfirmResponseDto confirmResponseDto = confirmResponseDtoResp.getBody();
 
@@ -394,8 +394,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
         logger.info(testTrace4.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + foodTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                foodTraceId));
         ResponseEntity<FoodResponseDto> foodResponseDtoResp = getFood(foodRequestDto, headers);
         FoodResponseDto foodResponseDto = foodResponseDtoResp.getBody();
     }
@@ -422,8 +422,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
         logger.info(testTrace3.toString());
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + contactTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                contactTraceId));
         ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
         List<Contact> contacts = contactsResp.getBody();
 
@@ -434,8 +434,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             queryTicketRequestDto) {
         String queryTicketTraceId = UUIDUtil.generateUUID();
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
-                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + queryTicketTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                queryTicketTraceId));
 
         TestTrace testTrace2 = new TestTrace();
         testTrace2.setError(0);
