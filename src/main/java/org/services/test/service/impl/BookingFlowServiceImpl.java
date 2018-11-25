@@ -278,7 +278,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace8);
         logger.info(testTrace8.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(enterTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + enterTraceId));
         ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
         enterBasicMsgResp.getBody();
     }
@@ -305,7 +306,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace7);
         logger.info(testTrace7.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(collectTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + collectTraceId));
         ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
         BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
     }
@@ -333,7 +335,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace6);
         logger.info(testTrace6.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(paymentTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + paymentTraceId));
         pay(paymentRequestDto, headers);
     }
 
@@ -360,7 +363,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         logger.info(testTrace5.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(confirmTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + confirmTraceId));
         ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
         ConfirmResponseDto confirmResponseDto = confirmResponseDtoResp.getBody();
 
@@ -390,7 +394,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
         logger.info(testTrace4.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(foodTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + foodTraceId));
         ResponseEntity<FoodResponseDto> foodResponseDtoResp = getFood(foodRequestDto, headers);
         FoodResponseDto foodResponseDto = foodResponseDtoResp.getBody();
     }
@@ -417,7 +422,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
         logger.info(testTrace3.toString());
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(contactTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + contactTraceId));
         ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
         List<Contact> contacts = contactsResp.getBody();
 
@@ -428,7 +434,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             queryTicketRequestDto) {
         String queryTicketTraceId = UUIDUtil.generateUUID();
 
-        headers.put(ServiceConstant.TEST_TRACE_ID, Arrays.asList(queryTicketTraceId));
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get(), ServiceConstant.TEST_TRACE_ID + ":" + queryTicketTraceId));
 
         TestTrace testTrace2 = new TestTrace();
         testTrace2.setError(0);
@@ -465,8 +472,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        loginHeaders.add(ServiceConstant.TEST_CASE_ID, ThreadLocalCache.testCaseIdThreadLocal.get());
-        loginHeaders.add(ServiceConstant.TEST_TRACE_ID, loginTraceId);
+        loginHeaders.add(ServiceConstant.USER_AGENT, ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get());
+        loginHeaders.add(ServiceConstant.USER_AGENT, ServiceConstant.TEST_TRACE_ID + ":" + loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         TestTrace testTrace = new TestTrace();
