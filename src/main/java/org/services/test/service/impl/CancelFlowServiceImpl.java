@@ -170,7 +170,6 @@ public class CancelFlowServiceImpl implements CancelFlowService {
 
         bookingFlowServiceImpl.persistTestData(testCase, ThreadLocalCache.testTracesThreadLocal.get());
 
-
         return bftr;
     }
 

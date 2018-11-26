@@ -1,7 +1,7 @@
 package org.services.test.exception.handler;
 
 import org.services.test.cache.ThreadLocalCache;
-import org.services.test.entity.MsMapping;
+import org.services.test.entity.enums.MsMapping;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.dto.FlowTestResult;

@@ -2,6 +2,7 @@ package org.services.test.util;
 
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.entity.enums.FoodEnum;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,7 +31,7 @@ public class ParamUtil {
 
         // random select end station nanjing or suzhou
         queryTicketRequestDto.setStartingPlace(ServiceConstant.SHANG_HAI);
-        if(RandomUtil.getRandomTrueOrFalse()){
+        if (RandomUtil.getRandomTrueOrFalse()) {
             queryTicketRequestDto.setEndPlace(ServiceConstant.NAN_JING);
         } else {
             queryTicketRequestDto.setEndPlace(ServiceConstant.SU_ZHOU);
@@ -85,8 +86,36 @@ public class ParamUtil {
         }
         confirmRequestDto.setFrom(startingStation);
         confirmRequestDto.setTo(endingStation);
-        confirmRequestDto.setAssurance(0); // 不选保险
-        confirmRequestDto.setFoodType(0); // 不选吃的
+
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setAssurance(0); // 不选保险
+        } else {
+            confirmRequestDto.setAssurance(1); // 选保险
+        }
+
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setFoodType(0); // 不选吃的
+        } else {
+            confirmRequestDto.setFoodType(1); // 选type 1
+            if (RandomUtil.getRandomTrueOrFalse()) {
+                confirmRequestDto.setFoodName(FoodEnum.CURD.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.CURD.getPrice());
+            } else if (RandomUtil.getRandomTrueOrFalse()) {
+                confirmRequestDto.setFoodName(FoodEnum.SOUP.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.SOUP.getPrice());
+            } else {
+                confirmRequestDto.setFoodName(FoodEnum.NOODLES.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.NOODLES.getPrice());
+            }
+        }
+
+        // 随机托运
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setConsigneeName(RandomUtil.getStringRandom(8));
+            confirmRequestDto.setConsigneePhone(RandomUtil.getTel());
+            confirmRequestDto.setConsigneeWeight(RandomUtil.getRamdomWeight());
+        }
+
         return confirmRequestDto;
     }
 

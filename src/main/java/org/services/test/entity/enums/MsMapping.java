@@ -1,4 +1,4 @@
-package org.services.test.entity;
+package org.services.test.entity.enums;
 
 public enum MsMapping {
     LOGIN("/login", "ts-login-service"),
