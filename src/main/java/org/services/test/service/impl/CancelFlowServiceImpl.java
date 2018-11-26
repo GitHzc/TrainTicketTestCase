@@ -32,6 +32,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private BookingFlowServiceImpl bookingFlowServiceImpl;
+
     private static final Logger logger = LoggerFactory.getLogger(CancelFlowServiceImpl.class);
 
     @Override
@@ -115,7 +118,6 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
-        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
         // construct test case info
         TestCase testCase = new TestCase();
@@ -152,6 +154,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         List<String> orderIds = orders.stream().filter(order -> order.getStatus() == 0 || order.getStatus() == 1)
                 .map(order -> order.getId().toString()).collect(Collectors.toList());
 
+        logger.info(orderIds.toString());
         if (!orderIds.isEmpty()) {
             String orderId = RandomUtil.getRandomElementInList(orderIds);
             RefundResponseDto refundResponseDto = testCalculateRefund(headers, orderId);
@@ -164,6 +167,10 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         FlowTestResult bftr = new FlowTestResult();
         bftr.setTestCase(testCase);
         bftr.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
+
+        bookingFlowServiceImpl.persistTestData(testCase, ThreadLocalCache.testTracesThreadLocal.get());
+
+
         return bftr;
     }
 
@@ -175,10 +182,8 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         CancelOrderRequestDto cancelOrderRequestDto = new CancelOrderRequestDto();
         cancelOrderRequestDto.setOrderId(orderId);
 
-        ResponseEntity<BasicMessage> basicMessageResp = cancelOrder(cancelOrderRequestDto, headers);
-        BasicMessage basicMessage = basicMessageResp.getBody();
-
         TestTrace testTrace5 = new TestTrace();
+        testTrace5.setSequence(5);
         testTrace5.setEntryApi("/cancelOrder");
         testTrace5.setEntryService("ts-cancel-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
@@ -196,6 +201,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         logger.info(testTrace5.toString());
 
+        ResponseEntity<BasicMessage> basicMessageResp = cancelOrder(cancelOrderRequestDto, headers);
+        BasicMessage basicMessage = basicMessageResp.getBody();
+
         return basicMessage;
     }
 
@@ -207,10 +215,8 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         RefundRequestDto refundRequestDto = new RefundRequestDto();
         refundRequestDto.setOrderId(orderId);
 
-        ResponseEntity<RefundResponseDto> refundResponseDtoResp = calculateRefund(refundRequestDto, headers);
-        RefundResponseDto refundResponseDto = refundResponseDtoResp.getBody();
-
         TestTrace testTrace4 = new TestTrace();
+        testTrace4.setSequence(4);
         testTrace4.setEntryApi("/cancelCalculateRefund");
         testTrace4.setEntryService("ts-cancel-service");
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
@@ -227,6 +233,10 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace4.setTestTraceId(calculateRefundTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
         logger.info(testTrace4.toString());
+
+        ResponseEntity<RefundResponseDto> refundResponseDtoResp = calculateRefund(refundRequestDto, headers);
+        RefundResponseDto refundResponseDto = refundResponseDtoResp.getBody();
+
         return refundResponseDto;
     }
 
@@ -234,19 +244,15 @@ public class CancelFlowServiceImpl implements CancelFlowService {
             orderQueryRequestDto) {
         String queryOrderOtherTraceId = UUIDUtil.generateUUID();
 
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
-                queryOrderOtherTraceId));
-        ResponseEntity<List<Order>> orderOthersResp = queryOrderOther(orderQueryRequestDto, headers);
-        List<Order> orderOthers = orderOthersResp.getBody();
-
         TestTrace testTrace3 = new TestTrace();
+        testTrace3.setSequence(3);
         testTrace3.setEntryApi("/orderOther/query");
         testTrace3.setEntryService("ts-order-other-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
         testTrace3.setError(0);
         testTrace3.setExpected_result(0);
         try {
-            testTrace3.setReq_param(objectMapper.writeValueAsString(orderOthers));
+            testTrace3.setReq_param(objectMapper.writeValueAsString(orderQueryRequestDto));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -256,6 +262,12 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace3.setTestTraceId(queryOrderOtherTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
         logger.info(testTrace3.toString());
+
+        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
+                queryOrderOtherTraceId));
+        ResponseEntity<List<Order>> orderOthersResp = queryOrderOther(orderQueryRequestDto, headers);
+        List<Order> orderOthers = orderOthersResp.getBody();
+
         return orderOthers;
     }
 
@@ -263,10 +275,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         String queryOrderTraceId = UUIDUtil.generateUUID();
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
                 queryOrderTraceId));
-        ResponseEntity<List<Order>> queryOrderResponseDtosResp = queryOrder(orderQueryRequestDto, headers);
-        List<Order> orders = queryOrderResponseDtosResp.getBody();
 
         TestTrace testTrace2 = new TestTrace();
+        testTrace2.setSequence(2);
         testTrace2.setEntryApi("/order/query");
         testTrace2.setEntryService("ts-order-service");
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
@@ -283,6 +294,10 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace2.setTestTraceId(queryOrderTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
         logger.info(testTrace2.toString());
+
+        ResponseEntity<List<Order>> queryOrderResponseDtosResp = queryOrder(orderQueryRequestDto, headers);
+        List<Order> orders = queryOrderResponseDtosResp.getBody();
+
         return orders;
     }
 
@@ -294,10 +309,8 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
-        LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
-
         TestTrace testTrace = new TestTrace();
+        testTrace.setSequence(1);
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
@@ -314,6 +327,10 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace.setTestTraceId(loginTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
         logger.info(testTrace.toString());
+
+        ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
+        LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
+
         return loginResponseDto;
     }
 }

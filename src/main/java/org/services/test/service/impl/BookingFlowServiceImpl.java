@@ -170,7 +170,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
-        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
         // construct test case info
         TestCase testCase = new TestCase();
