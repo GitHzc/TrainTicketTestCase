@@ -1,7 +1,9 @@
 package org.services.test.util;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.entity.enums.FoodEnum;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -85,8 +87,35 @@ public class ParamUtil {
         }
         confirmRequestDto.setFrom(startingStation);
         confirmRequestDto.setTo(endingStation);
-        confirmRequestDto.setAssurance(0); // 不选保险
-        confirmRequestDto.setFoodType(0); // 不选吃的
+        //confirmRequestDto.setAssurance(0); // 不选保险
+        //confirmRequestDto.setFoodType(0); // 不选吃的
+
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setAssurance(0); // 不选保险
+        } else {
+            confirmRequestDto.setAssurance(1); // 选保险
+        }
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setFoodType(0); // 不选吃的
+        } else {
+            confirmRequestDto.setFoodType(1); // 选type 1
+            if (RandomUtil.getRandomTrueOrFalse()) {
+                confirmRequestDto.setFoodName(FoodEnum.CURD.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.CURD.getPrice());
+            } else if (RandomUtil.getRandomTrueOrFalse()) {
+                confirmRequestDto.setFoodName(FoodEnum.SOUP.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.SOUP.getPrice());
+            } else {
+                confirmRequestDto.setFoodName(FoodEnum.NOODLES.getName());
+                confirmRequestDto.setFoodPrice(FoodEnum.NOODLES.getPrice());
+            }
+        }
+        // 随机托运
+        if (RandomUtil.getRandomTrueOrFalse()) {
+            confirmRequestDto.setConsigneeName(RandomUtil.getStringRandom(8));
+            confirmRequestDto.setConsigneePhone(RandomUtil.getTel());
+            confirmRequestDto.setConsigneeWeight(RandomUtil.getRamdomWeight());
+        }
         return confirmRequestDto;
     }
 
@@ -98,5 +127,48 @@ public class ParamUtil {
         foodRequestDto.setEndStation(endingStation);
         foodRequestDto.setTripId(tripId);
         return foodRequestDto;
+    }
+
+    public static OrderQueryRequestDto constructOrderQueryRequestDto() {
+        OrderQueryRequestDto orderQueryRequestDto = new OrderQueryRequestDto();
+        orderQueryRequestDto.disableBoughtDateQuery();
+        orderQueryRequestDto.disableStateQuery();
+        orderQueryRequestDto.disableTravelDateQuery();
+        return orderQueryRequestDto;
+    }
+
+    public static StationNameRequestDto constructStationNameRequestDto(String stationId) {
+        StationNameRequestDto stationNameRequestDto = new StationNameRequestDto();
+        stationNameRequestDto.setStationId(stationId);
+        return stationNameRequestDto;
+    }
+
+    public static ConsignInsertRequestDto constructConsignRequestDto(Order order) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        ConsignInsertRequestDto consignInsertRequestDto = new ConsignInsertRequestDto();
+        consignInsertRequestDto.setAccountId(order.getAccountId());
+        consignInsertRequestDto.setConsignee("test");
+        consignInsertRequestDto.setFrom(order.getFrom());
+        consignInsertRequestDto.setHandleDate(dateFormat.format(order.getTravelDate()));
+        consignInsertRequestDto.setWithin(false);
+        consignInsertRequestDto.setPhone("123456");
+        consignInsertRequestDto.setTargetDate(DateUtils.addDays(order.getTravelDate(), 1).toString());
+        consignInsertRequestDto.setTo(order.getTo());
+        consignInsertRequestDto.setWeight(10.0);
+        return consignInsertRequestDto;
+    }
+
+    public static VoucherUIRequestDto constructVoucherUIRequestDto(Order order) {
+        VoucherUIRequestDto voucherUIRequestDto = new VoucherUIRequestDto();
+        voucherUIRequestDto.setOrderId(order.getId().toString());
+        voucherUIRequestDto.setTrain_number(order.getTrainNumber());
+        return voucherUIRequestDto;
+    }
+
+    public static VoucherInfoRequestDto constructVoucherInfoRequestDto(Order order) {
+        VoucherInfoRequestDto voucherInfoRequestDto = new VoucherInfoRequestDto();
+        voucherInfoRequestDto.setOrderId(order.getId().toString());
+        voucherInfoRequestDto.setType(1);
+        return voucherInfoRequestDto;
     }
 }

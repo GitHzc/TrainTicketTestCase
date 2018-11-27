@@ -1,9 +1,12 @@
 package org.services.test.entity.dto;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-public class Order {
+public class Order implements Serializable {
+
+    private static final long serialVersionUID = -286508046710444889L;
 
     private UUID id;
 

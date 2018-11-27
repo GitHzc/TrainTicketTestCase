@@ -9,4 +9,7 @@ public interface ServiceConstant {
     String SHANG_HAI = "Shang Hai";
     String NAN_JING = "Nan Jing";
     String SU_ZHOU = "Su Zhou";
+    String BOOKING_FLOW = "BookingFlowTestClass";
+    String CONSIGN_FLOW = "ConsignFlowTestClass";
+    String USER_AGENT = "user_agent";
 }

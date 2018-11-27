@@ -18,7 +18,7 @@ public class BookingFlowController {
     private BookingFlowService bookingFlowService;
 
     @GetMapping("/bookingflow")
-    public FlowTestResult booking() {
+    public FlowTestResult booking() throws Exception {
         return bookingFlowService.bookFlow();
     }
 

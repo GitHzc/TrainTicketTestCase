@@ -48,7 +48,7 @@ public class TestTrace implements Serializable {
     @Column(name = DBConstants.Y_ISSUE_MS)
     private String y_issue_ms;
 
-    @Column(name = DBConstants.USER_TYPE)
+    @Column(name = DBConstants.Y_ISSUE_DIM_TYPE)
     private String y_issue_dim_type;
 
     @Column(name = DBConstants.Y_ISSUE_DIM_CONTENT, columnDefinition = "varchar(5000) COMMENT 'Issue Dimension Content'")

@@ -24,5 +24,5 @@ public interface BookingFlowService {
 
     ResponseEntity<BasicMessage> enter(ExcuteRequestDto dto, Map<String, List<String>> headers);
 
-    FlowTestResult bookFlow();
+    FlowTestResult bookFlow() throws Exception;
 }
