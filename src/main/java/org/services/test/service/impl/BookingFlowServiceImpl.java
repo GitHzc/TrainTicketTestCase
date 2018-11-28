@@ -93,6 +93,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ResponseEntity<List<Contact>> ret = restTemplate.exchange(url, HttpMethod.GET, req, new
                 ParameterizedTypeReference<List<Contact>>() {
                 });
+
+
         return ret;
     }
 
@@ -155,7 +157,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
      * ticket booking flow test
      ***************************/
     @Override
-    public FlowTestResult bookFlow() {
+    public FlowTestResult bookFlow() throws JsonProcessingException {
 
         List<TestTrace> traces = new ArrayList<>();
         ThreadLocalCache.testTracesThreadLocal.set(traces);
@@ -255,7 +257,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     }
 
 
-    private void testEnterStation(Map<String, List<String>> headers, ExcuteRequestDto excuteRequestDto) {
+    private void testEnterStation(Map<String, List<String>> headers, ExcuteRequestDto excuteRequestDto) throws
+            JsonProcessingException {
         String enterTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace8 = new TestTrace();
@@ -264,12 +267,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace8.setEntryTimestamp(System.currentTimeMillis());
         testTrace8.setError(0);
         testTrace8.setExpected_result(0);
-        testTrace8.setSequence(8);
-        try {
-            testTrace8.setReq_param(objectMapper.writeValueAsString(excuteRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace8.setSequence(TestTraceUtil.getTestTraceSequence());
+        testTrace8.setReq_param(objectMapper.writeValueAsString(excuteRequestDto));
         testTrace8.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace8.setTestClass("BookingFlowTestClass");
         testTrace8.setTestMethod("enter");
@@ -283,7 +282,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         enterBasicMsgResp.getBody();
     }
 
-    private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
+    private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) throws
+            JsonProcessingException {
         String collectTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace7 = new TestTrace();
@@ -292,12 +292,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace7.setEntryTimestamp(System.currentTimeMillis());
         testTrace7.setError(0);
         testTrace7.setExpected_result(0);
-        testTrace7.setSequence(7);
-        try {
-            testTrace7.setReq_param(objectMapper.writeValueAsString(collectRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace7.setSequence(TestTraceUtil.getTestTraceSequence());
+        testTrace7.setReq_param(objectMapper.writeValueAsString(collectRequestDto));
         testTrace7.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace7.setTestClass("BookingFlowTestClass");
         testTrace7.setTestMethod("collect");
@@ -321,7 +317,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         testTrace6.setError(0);
         testTrace6.setExpected_result(0);
-        testTrace6.setSequence(6);
+        testTrace6.setSequence(TestTraceUtil.getTestTraceSequence());
         try {
             testTrace6.setReq_param(objectMapper.writeValueAsString(paymentRequestDto));
         } catch (JsonProcessingException e) {
@@ -340,25 +336,27 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
-            confirmRequestDto) {
+            confirmRequestDto) throws JsonProcessingException {
         String confirmTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace5 = new TestTrace();
-        testTrace5.setEntryApi("/preserve");
-        testTrace5.setEntryService("ts-preserve-service");
+        if (confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
+            testTrace5.setEntryApi("/preserve");
+            testTrace5.setEntryService("ts-preserve-service");
+        } else {
+            testTrace5.setEntryApi("/preserveOther");
+            testTrace5.setEntryService("ts-preserve-other-service");
+        }
+
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
         testTrace5.setExpected_result(0);
         testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace5.setTestClass("BookingFlowTestClass");
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
-        testTrace5.setSequence(5);
+        testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace5.setError(0);
-        try {
-            testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         logger.info(testTrace5.toString());
 
@@ -371,7 +369,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return confirmResponseDto;
     }
 
-    private void testQueryFood(Map<String, List<String>> headers, FoodRequestDto foodRequestDto) {
+    private void testQueryFood(Map<String, List<String>> headers, FoodRequestDto foodRequestDto) throws
+            JsonProcessingException {
         String foodTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace4 = new TestTrace();
@@ -380,12 +379,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
         testTrace4.setError(0);
         testTrace4.setExpected_result(0);
-        try {
-            testTrace4.setReq_param(objectMapper.writeValueAsString(foodRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        testTrace4.setSequence(4);
+        testTrace4.setReq_param(objectMapper.writeValueAsString(foodRequestDto));
+        testTrace4.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace4.setTestClass("BookingFlowTestClass");
         testTrace4.setTestMethod("getFood");
@@ -399,7 +394,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         FoodResponseDto foodResponseDto = foodResponseDtoResp.getBody();
     }
 
-    private List<Contact> testQueryContact(Map<String, List<String>> headers) {
+    private List<Contact> testQueryContact(Map<String, List<String>> headers) throws JsonProcessingException {
         String contactTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace3 = new TestTrace();
@@ -408,12 +403,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace3.setEntryService("ts-contacts-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
         testTrace3.setExpected_result(0);
-        testTrace3.setSequence(3);
-        try {
-            testTrace3.setReq_param(objectMapper.writeValueAsString(null));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace3.setSequence(TestTraceUtil.getTestTraceSequence());
+        testTrace3.setReq_param(objectMapper.writeValueAsString(null));
         testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace3.setTestClass("BookingFlowTestClass");
         testTrace3.setTestMethod("getContacts");
@@ -430,7 +421,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     }
 
     private List<QueryTicketResponseDto> testQueryTicket(Map<String, List<String>> headers, QueryTicketRequestDto
-            queryTicketRequestDto) {
+            queryTicketRequestDto) throws JsonProcessingException {
         String queryTicketTraceId = UUIDUtil.generateUUID();
 
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
@@ -445,14 +436,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             testTrace2.setEntryApi("/travel/query");
             testTrace2.setEntryService("ts-travel-service");
         }
-        testTrace2.setSequence(2);
+        testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
         testTrace2.setExpected_result(0);
-        try {
-            testTrace2.setReq_param(objectMapper.writeValueAsString(queryTicketRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace2.setReq_param(objectMapper.writeValueAsString(queryTicketRequestDto));
         testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace2.setTestClass("BookingFlowTestClass");
         testTrace2.setTestMethod("queryTicket");
@@ -466,7 +453,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return queryTicketResponseDtos;
     }
 
-    private LoginResponseDto testLogin(LoginRequestDto loginRequestDto) {
+    LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws JsonProcessingException {
         String loginTraceId = UUIDUtil.generateUUID();
 
         HttpHeaders loginHeaders = new HttpHeaders();
@@ -481,17 +468,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
-        testTrace.setSequence(1);
+        testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace.setExpected_result(0);
         testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace.setTestClass("BookingFlowTestClass");
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
-        try {
-            testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
         logger.info(testTrace.toString());
 

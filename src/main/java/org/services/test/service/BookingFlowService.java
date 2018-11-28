@@ -1,5 +1,6 @@
 package org.services.test.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.services.test.entity.dto.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,5 @@ public interface BookingFlowService {
 
     ResponseEntity<BasicMessage> enter(ExcuteRequestDto dto, Map<String, List<String>> headers);
 
-    FlowTestResult bookFlow();
+    FlowTestResult bookFlow() throws JsonProcessingException;
 }

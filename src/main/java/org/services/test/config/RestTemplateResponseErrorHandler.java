@@ -3,6 +3,7 @@ package org.services.test.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.services.test.entity.ErrorBody;
 import org.services.test.exception.SeqFaultException;
+import org.services.test.exception.UnknownException;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -24,7 +25,7 @@ public class RestTemplateResponseErrorHandler
 
         // Ignore exception
         return (httpResponse.getStatusCode().series() == CLIENT_ERROR
-                        || httpResponse.getStatusCode().series() == SERVER_ERROR);
+                || httpResponse.getStatusCode().series() == SERVER_ERROR);
     }
 
     @Override
@@ -34,8 +35,15 @@ public class RestTemplateResponseErrorHandler
 //        String result = new BufferedReader(new InputStreamReader(httpResponse.getBody()))
 //                .lines().collect(Collectors.joining(System.lineSeparator()));
         ObjectMapper objectMapper = new ObjectMapper();
-        ErrorBody errorBody = objectMapper.readValue(
-                new BufferedReader(new InputStreamReader(httpResponse.getBody())), ErrorBody.class);
+
+        ErrorBody errorBody = null;
+        try {
+            errorBody = objectMapper.readValue(
+                    new BufferedReader(new InputStreamReader(httpResponse.getBody())), ErrorBody.class);
+        } catch (Exception e) {
+            throw new UnknownException(e.getMessage());
+        }
+
         if ("java.lang.IndexOutOfBoundsException".equals(errorBody.getException())) {
             throw new SeqFaultException(errorBody, "seq error");
         }

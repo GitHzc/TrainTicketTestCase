@@ -6,6 +6,7 @@ public interface ServiceConstant {
     String TEST_TRACE_ID = "Test-Trace-Id";
     String SET_COOKIE = "set-Cookie";
     String USER_AGENT = "user-agent";
+    String CONSIGN_FLOW = "ConsignFlowTestClass";
 
     String SHANG_HAI = "Shang Hai";
     String NAN_JING = "Nan Jing";

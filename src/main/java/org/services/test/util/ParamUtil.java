@@ -1,5 +1,6 @@
 package org.services.test.util;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
 import org.services.test.entity.enums.FoodEnum;
@@ -127,5 +128,48 @@ public class ParamUtil {
         foodRequestDto.setEndStation(endingStation);
         foodRequestDto.setTripId(tripId);
         return foodRequestDto;
+    }
+
+    public static OrderQueryRequestDto constructOrderQueryRequestDto() {
+        OrderQueryRequestDto orderQueryRequestDto = new OrderQueryRequestDto();
+        orderQueryRequestDto.disableBoughtDateQuery();
+        orderQueryRequestDto.disableStateQuery();
+        orderQueryRequestDto.disableTravelDateQuery();
+        return orderQueryRequestDto;
+    }
+
+    public static StationNameRequestDto constructStationNameRequestDto(String stationId) {
+        StationNameRequestDto stationNameRequestDto = new StationNameRequestDto();
+        stationNameRequestDto.setStationId(stationId);
+        return stationNameRequestDto;
+    }
+
+    public static ConsignInsertRequestDto constructConsignRequestDto(Order order) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        ConsignInsertRequestDto consignInsertRequestDto = new ConsignInsertRequestDto();
+        consignInsertRequestDto.setAccountId(order.getAccountId());
+        consignInsertRequestDto.setConsignee("test");
+        consignInsertRequestDto.setFrom(order.getFrom());
+        consignInsertRequestDto.setHandleDate(dateFormat.format(order.getTravelDate()));
+        consignInsertRequestDto.setWithin(false);
+        consignInsertRequestDto.setPhone("123456");
+        consignInsertRequestDto.setTargetDate(DateUtils.addDays(order.getTravelDate(), 1).toString());
+        consignInsertRequestDto.setTo(order.getTo());
+        consignInsertRequestDto.setWeight(10.0);
+        return consignInsertRequestDto;
+    }
+
+    public static VoucherUIRequestDto constructVoucherUIRequestDto(Order order) {
+        VoucherUIRequestDto voucherUIRequestDto = new VoucherUIRequestDto();
+        voucherUIRequestDto.setOrderId(order.getId().toString());
+        voucherUIRequestDto.setTrain_number(order.getTrainNumber());
+        return voucherUIRequestDto;
+    }
+
+    public static VoucherInfoRequestDto constructVoucherInfoRequestDto(Order order) {
+        VoucherInfoRequestDto voucherInfoRequestDto = new VoucherInfoRequestDto();
+        voucherInfoRequestDto.setOrderId(order.getId().toString());
+        voucherInfoRequestDto.setType(1);
+        return voucherInfoRequestDto;
     }
 }

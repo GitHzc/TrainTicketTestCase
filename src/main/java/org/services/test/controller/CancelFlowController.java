@@ -1,5 +1,6 @@
 package org.services.test.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.services.test.entity.dto.BasicMessage;
 import org.services.test.entity.dto.CancelOrderRequestDto;
 import org.services.test.entity.dto.FlowTestResult;
@@ -23,7 +24,7 @@ public class CancelFlowController {
     private CancelFlowService cancelFlowService;
 
     @GetMapping("/cancelflow")
-    public FlowTestResult cancelFlow() {
+    public FlowTestResult cancelFlow() throws JsonProcessingException {
         return cancelFlowService.cancelFlow();
     }
 

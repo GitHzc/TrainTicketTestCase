@@ -1,5 +1,6 @@
 package org.services.test.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.entity.dto.LoginRequestDto;
 import org.services.test.entity.dto.LoginResponseDto;
@@ -18,7 +19,7 @@ public class BookingFlowController {
     private BookingFlowService bookingFlowService;
 
     @GetMapping("/bookingflow")
-    public FlowTestResult booking() {
+    public FlowTestResult booking() throws JsonProcessingException {
         return bookingFlowService.bookFlow();
     }
 

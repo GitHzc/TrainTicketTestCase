@@ -1,10 +1,11 @@
 package org.services.test.exception.handler;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import org.services.test.cache.ThreadLocalCache;
-import org.services.test.entity.enums.MsMapping;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.entity.enums.MsMapping;
 import org.services.test.exception.SeqFaultException;
 import org.services.test.exception.UnknownException;
 import org.services.test.service.impl.BookingFlowServiceImpl;
@@ -68,6 +69,12 @@ public class GlobalExceptionHandler {
 
         bookingFlowServiceImpl.persistTestData(testCase, testTraces);
         return flowTestResult;
+    }
+
+    @ExceptionHandler(JsonParseException.class)
+    @ResponseBody
+    public String handleJsonParseException(JsonParseException e) {
+        return "json parse error";
     }
 
     private String getServiceNameByEntryApi(String entryApi) {
