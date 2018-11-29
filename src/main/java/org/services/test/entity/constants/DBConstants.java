@@ -4,7 +4,7 @@ public interface DBConstants {
 
     // for uuid strategy
     String ID_STRATEGY = "IdStrategy";
-    String UUID = "uuid";
+    String ASSIGNED = "assigned";
 
     // for table test case
     String TABLE_TEST_CASE = "TestCase";

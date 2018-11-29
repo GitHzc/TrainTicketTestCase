@@ -15,7 +15,7 @@ public class TestTrace implements Serializable {
     @Id
     @Column(name = DBConstants.TEST_TRACE_ID)
     @GeneratedValue(generator  = DBConstants.ID_STRATEGY)
-    @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.UUID)
+    @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.ASSIGNED)
     private String testTraceId;
 
     @Column(name = DBConstants.TEST_CASE_ID)
