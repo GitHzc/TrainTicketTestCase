@@ -30,10 +30,11 @@ public class GlobalExceptionHandler {
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
 
         testTraces.forEach(x -> {
-            if (x.getEntryApi().equals(e.getErrorBody().getPath())) {
+            String entryApi = x.getEntryApi();
+            if (e.getErrorBody().getPath().startsWith(entryApi)) {
                 x.setError(1);
                 x.setExpected_result(1);
-                x.setY_issue_ms("test");
+                x.setY_issue_ms(getServiceNameByEntryApi(entryApi));
                 x.setY_issue_dim_content("test");
                 x.setY_issue_dim_type("seq");
             }
@@ -55,7 +56,7 @@ public class GlobalExceptionHandler {
 
         testTraces.forEach(x -> {
             String entryApi = x.getEntryApi();
-            if (entryApi.equals(e.getErrorBody().getPath())) {
+            if (e.getErrorBody().getPath().startsWith(entryApi)) {
                 x.setError(1);
                 x.setY_issue_ms(getServiceNameByEntryApi(entryApi));
                 x.setY_issue_dim_content("unknown");
