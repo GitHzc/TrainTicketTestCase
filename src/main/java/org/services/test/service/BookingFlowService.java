@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface BookingFlowService {
-    ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders);
+    ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) throws Exception;
 
     ResponseEntity<List<QueryTicketResponseDto>> queryTicket(QueryTicketRequestDto dto,  Map<String, List<String>> headers);
 

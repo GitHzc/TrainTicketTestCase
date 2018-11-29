@@ -1,0 +1,13 @@
+version: '3'
+services:
+  ts-service-test:
+    build: TrainTicketTestCase
+    image: rest-test-trainticket/ts-service-test
+    restart: always
+    ports:
+      - 10101:10101
+    networks:
+      - my-network
+networks:
+  my-network:
+    driver: bridge
