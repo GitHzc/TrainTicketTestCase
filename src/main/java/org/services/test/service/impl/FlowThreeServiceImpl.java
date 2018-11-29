@@ -1,5 +1,6 @@
 package org.services.test.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.services.test.cache.ThreadLocalCache;
@@ -34,6 +35,28 @@ public class FlowThreeServiceImpl implements FlowThreeService {
 
     @Autowired
     private ClusterConfig clusterConfig;
+
+    @Override
+    public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
+        HttpEntity<LoginRequestDto> req = new HttpEntity<>(dto, httpHeaders);
+
+        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/login");
+        ResponseEntity<LoginResponseDto> resp = restTemplate.exchange(url, HttpMethod.POST, req,
+                LoginResponseDto.class);
+
+        HttpHeaders responseHeaders = resp.getHeaders();
+        List<String> values = responseHeaders.get(ServiceConstant.SET_COOKIE);
+        List<String> respCookieValue = new ArrayList<>();
+        for (String cookie : values) {
+            respCookieValue.add(cookie.split(";")[0]);
+        }
+        LoginResponseDto ret = resp.getBody();
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put(ServiceConstant.COOKIE, respCookieValue);
+        ret.setHeaders(headers);
+        return resp;
+    }
+
 
     @Override
     public List<Order> queryOrders(OrderQueryRequestDto orderQueryRequestDto, Map<String, List<String>> headers) {
@@ -155,7 +178,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * Get orders, contain steps:
          *     1. login
          *     2. query order service
-         *     3. query order service
+         *     3. query order other service
          */
         List<Order> orders = getOrders(headers);
         if (CollectionUtils.isEmpty(orders)) {
@@ -437,12 +460,11 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * 1. login
          */
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
-        LoginResponseDto loginResponseDto = bookingFlowServiceImpl.testLogin(loginRequestDto);
+        LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
 
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         headers.putAll(loginResponseDto.getHeaders());
-        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
         // construct test case info
         // construct test case info
@@ -475,18 +497,48 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         return allOrders;
     }
 
+    LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws JsonProcessingException {
+        String loginTraceId = UUIDUtil.generateUUID();
+
+        HttpHeaders loginHeaders = new HttpHeaders();
+        loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
+        loginHeaders.add(ServiceConstant.USER_AGENT, ServiceConstant.TEST_CASE_ID + ":" + ThreadLocalCache
+                .testCaseIdThreadLocal.get());
+        loginHeaders.add(ServiceConstant.USER_AGENT, ServiceConstant.TEST_TRACE_ID + ":" + loginTraceId);
+        loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        TestTrace testTrace = new TestTrace();
+        testTrace.setError(0);
+        testTrace.setEntryApi("/login");
+        testTrace.setEntryService("ts-login-service");
+        testTrace.setEntryTimestamp(System.currentTimeMillis());
+        testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
+        testTrace.setExpected_result(0);
+        testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
+        testTrace.setTestClass("BookingFlowTestClass");
+        testTrace.setTestMethod("login");
+        testTrace.setTestTraceId(loginTraceId);
+        testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
+
+        ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
+        LoginResponseDto loginResponseDto = loginResponseDtoResp.getBody();
+
+        return loginResponseDto;
+    }
+
     private void queryStationNameById(Map<String, List<String>> headers, List<Order> orders) throws Exception {
         /*
          * 4. query station name by id
          */
         StationNameRequestDto stationNameRequestDto;
-        for (Order order : orders) {
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getFrom());
-            testQueryStationNameById(headers, stationNameRequestDto);
+        Order order = RandomUtil.getRandomElementInList(orders);
+        stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getFrom());
+        testQueryStationNameById(headers, stationNameRequestDto);
 
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getTo());
-            testQueryStationNameById(headers, stationNameRequestDto);
-        }
+        stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getTo());
+        testQueryStationNameById(headers, stationNameRequestDto);
+
     }
 
     private void saveDataForReturn(FlowTestResult flowTestResult) {

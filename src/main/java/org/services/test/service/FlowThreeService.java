@@ -1,11 +1,21 @@
 package org.services.test.service;
 
+import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.util.UrlUtil;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public interface FlowThreeService {
+     ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders);
+
     List<Order> queryOrders(OrderQueryRequestDto orderQueryRequestDto, Map<String, List<String>> headers);
 
     FlowTestResult consignFlow() throws Exception;
