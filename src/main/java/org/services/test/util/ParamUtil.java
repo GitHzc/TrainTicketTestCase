@@ -148,14 +148,14 @@ public class ParamUtil {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         ConsignInsertRequestDto consignInsertRequestDto = new ConsignInsertRequestDto();
         consignInsertRequestDto.setAccountId(order.getAccountId());
-        consignInsertRequestDto.setConsignee("test");
+        consignInsertRequestDto.setConsignee(RandomUtil.getStringRandom(10));
         consignInsertRequestDto.setFrom(order.getFrom());
         consignInsertRequestDto.setHandleDate(dateFormat.format(order.getTravelDate()));
         consignInsertRequestDto.setWithin(false);
-        consignInsertRequestDto.setPhone("123456");
+        consignInsertRequestDto.setPhone(RandomUtil.getTel());
         consignInsertRequestDto.setTargetDate(DateUtils.addDays(order.getTravelDate(), 1).toString());
         consignInsertRequestDto.setTo(order.getTo());
-        consignInsertRequestDto.setWeight(10.0);
+        consignInsertRequestDto.setWeight(RandomUtil.getRamdomWeight());
         return consignInsertRequestDto;
     }
 
@@ -171,5 +171,14 @@ public class ParamUtil {
         voucherInfoRequestDto.setOrderId(order.getId().toString());
         voucherInfoRequestDto.setType(1);
         return voucherInfoRequestDto;
+    }
+
+    public static AddContactsInfo constructAddContactsInfo() {
+        AddContactsInfo addContactsInfo = new AddContactsInfo();
+        addContactsInfo.setDocumentNumber(RandomUtil.getStringRandom(10));
+        addContactsInfo.setDocumentType(1);
+        addContactsInfo.setName(RandomUtil.getStringRandom(8));
+        addContactsInfo.setPhoneNumber(RandomUtil.getTel());
+        return addContactsInfo;
     }
 }
