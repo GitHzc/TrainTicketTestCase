@@ -1,16 +1,16 @@
 package org.services.test.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.services.test.cache.ThreadLocalCache;
 import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.entity.dto.LoginRequestDto;
 import org.services.test.entity.dto.LoginResponseDto;
+import org.services.test.entity.dto.YissueDimDto;
 import org.services.test.service.BookingFlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/test")
@@ -18,8 +18,9 @@ public class BookingFlowController {
     @Autowired
     private BookingFlowService bookingFlowService;
 
-    @GetMapping("/bookingflow")
-    public FlowTestResult booking() throws JsonProcessingException {
+    @PostMapping("/bookingflow")
+    public FlowTestResult booking(@RequestBody YissueDimDto dto) throws JsonProcessingException {
+        ThreadLocalCache.yIssueDimDto.set(dto);
         return bookingFlowService.bookFlow();
     }
 

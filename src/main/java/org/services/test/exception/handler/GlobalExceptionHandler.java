@@ -5,10 +5,12 @@ import org.services.test.cache.ThreadLocalCache;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.entity.dto.YissueDimDto;
 import org.services.test.entity.enums.MsMapping;
 import org.services.test.exception.SeqFaultException;
 import org.services.test.exception.UnknownException;
 import org.services.test.service.impl.BookingFlowServiceImpl;
+import org.services.test.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,17 +30,14 @@ public class GlobalExceptionHandler {
 
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
+        TestTrace lastTestTrace = CollectionUtil.getLastElement(testTraces);
+        YissueDimDto yissueDimDto = ThreadLocalCache.yIssueDimDto.get();
 
-        testTraces.forEach(x -> {
-            String entryApi = x.getEntryApi();
-            if (e.getErrorBody().getPath().startsWith(entryApi)) {
-                x.setError(1);
-                x.setExpected_result(1);
-                x.setY_issue_ms(getServiceNameByEntryApi(entryApi));
-                x.setY_issue_dim_content("test");
-                x.setY_issue_dim_type("seq");
-            }
-        });
+        lastTestTrace.setExpected_result(1);
+        lastTestTrace.setError(1);
+        lastTestTrace.setY_issue_dim_type(yissueDimDto.getType());
+        lastTestTrace.setY_issue_ms(yissueDimDto.getMs());
+        lastTestTrace.setY_issue_dim_content(yissueDimDto.getContent());
 
         FlowTestResult flowTestResult = new FlowTestResult();
         flowTestResult.setTestCase(testCase);
@@ -53,16 +52,13 @@ public class GlobalExceptionHandler {
     public FlowTestResult handleUnknownException(UnknownException e) {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
+        TestTrace lastTestTrace = CollectionUtil.getLastElement(testTraces);
+        YissueDimDto yissueDimDto = ThreadLocalCache.yIssueDimDto.get();
 
-        testTraces.forEach(x -> {
-            String entryApi = x.getEntryApi();
-            if (e.getErrorBody().getPath().startsWith(entryApi)) {
-                x.setError(1);
-                x.setY_issue_ms(getServiceNameByEntryApi(entryApi));
-                x.setY_issue_dim_content("unknown");
-                x.setY_issue_dim_type("seq");
-            }
-        });
+        lastTestTrace.setError(1);
+        lastTestTrace.setY_issue_dim_type(yissueDimDto.getType());
+        lastTestTrace.setY_issue_ms(yissueDimDto.getMs());
+        lastTestTrace.setY_issue_dim_content(yissueDimDto.getContent());
 
         FlowTestResult flowTestResult = new FlowTestResult();
         flowTestResult.setTestCase(testCase);

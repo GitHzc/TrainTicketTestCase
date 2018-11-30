@@ -2,6 +2,7 @@ package org.services.test.cache;
 
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
+import org.services.test.entity.dto.YissueDimDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,13 @@ public class ThreadLocalCache {
     public static final ThreadLocal<String> testCaseIdThreadLocal = new ThreadLocal<>();
     public static final ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
     public static final ThreadLocal<TestCase> testCaseThreadLocal = new ThreadLocal<>();
+    public static final ThreadLocal<YissueDimDto> yIssueDimDto = new ThreadLocal<>();
 
     public static void threadLocalClean() {
         testCaseIdThreadLocal.remove();
         testTracesThreadLocal.remove();
         testCaseThreadLocal.remove();
+        yIssueDimDto.remove();
         logger.info("clean ThreadLocal");
     }
 }
