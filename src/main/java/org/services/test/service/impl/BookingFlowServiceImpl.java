@@ -114,7 +114,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
         HttpEntity<ConfirmRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
-        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/preserve");
+        String uri;
+        if (dto.getTo().equals(ServiceConstant.NAN_JING)) {
+            uri = "/preserveOther";
+        } else {
+            uri = "/preserve";
+        }
+        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
         ResponseEntity<ConfirmResponseDto> ret = restTemplate.exchange(url, HttpMethod.POST, req,
                 ConfirmResponseDto.class);
         return ret;
@@ -340,7 +346,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String confirmTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace5 = new TestTrace();
-        if (confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
+        if (!confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
             testTrace5.setEntryApi("/preserve");
             testTrace5.setEntryService("ts-preserve-service");
         } else {
