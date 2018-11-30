@@ -146,17 +146,26 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         /*************************************
          * 4th step: calculate refund
          *************************************/
-        if (null != orderOthers && !orderOthers.isEmpty()) {
-            orders.addAll(orderOthers);
-        }
 
         // get order ids that status is pay or not pay.
         List<String> orderIds = orders.stream().filter(order -> order.getStatus() == 0 || order.getStatus() == 1)
                 .map(order -> order.getId().toString()).collect(Collectors.toList());
+        List<String> orderOtherIds = orderOthers.stream().filter(order -> order.getStatus() == 0 || order.getStatus()
+                == 1).map(order -> order.getId().toString()).collect(Collectors.toList());
 
-        logger.info(orderIds.toString());
-        if (!orderIds.isEmpty()) {
-            String orderId = RandomUtil.getRandomElementInList(orderIds);
+        String orderId = null;
+        if (null != orderIds && !orderIds.isEmpty()) {
+            orderId = RandomUtil.getRandomElementInList(orderIds);
+            ThreadLocalCache.cancelOrderType.set("cancelOrder");
+        } else {
+            if (null != orderOtherIds && !orderOtherIds.isEmpty()) {
+                orderId = RandomUtil.getRandomElementInList(orderOtherIds);
+                ThreadLocalCache.cancelOrderType.set("cancelOrderOther");
+            }
+        }
+
+        if (null != orderId) {
+
             RefundResponseDto refundResponseDto = testCalculateRefund(headers, orderId);
             /***************************
              * 5th step: cancel order

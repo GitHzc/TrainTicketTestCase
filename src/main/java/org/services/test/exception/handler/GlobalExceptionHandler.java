@@ -5,17 +5,21 @@ import org.services.test.cache.ThreadLocalCache;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.dto.FlowTestResult;
-import org.services.test.entity.dto.YissueDimDto;
 import org.services.test.entity.enums.MsMapping;
 import org.services.test.exception.SeqFaultException;
 import org.services.test.exception.UnknownException;
 import org.services.test.service.impl.BookingFlowServiceImpl;
 import org.services.test.util.CollectionUtil;
+import org.services.test.util.K8sUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 @ControllerAdvice
@@ -31,13 +35,71 @@ public class GlobalExceptionHandler {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
         TestTrace lastTestTrace = CollectionUtil.getLastElement(testTraces);
-        YissueDimDto yissueDimDto = ThreadLocalCache.yIssueDimDto.get();
 
         lastTestTrace.setExpected_result(1);
         lastTestTrace.setError(1);
-        lastTestTrace.setY_issue_dim_type(yissueDimDto.getType());
-        lastTestTrace.setY_issue_ms(yissueDimDto.getMs());
-        lastTestTrace.setY_issue_dim_content(yissueDimDto.getContent());
+        lastTestTrace.setY_issue_dim_type("seq");
+
+        switch (lastTestTrace.getEntryApi()) {
+            case "/preserveOther":
+                lastTestTrace.setY_issue_ms("ts-preserve-other-service");
+                lastTestTrace.setY_issue_dim_content("ts-contacts-service_ts-security-service=0," +
+                        "ts-contacts-service_ts-security-service_caller=ts-preserve-other-service");
+                break;
+            case "/preserve":
+                lastTestTrace.setY_issue_ms("ts-preserve-service");
+                lastTestTrace.setY_issue_dim_content("ts-contacts-service_ts-security-service=0," +
+                        "ts-contacts-service_ts-security-service_caller=ts-preserve-service");
+                break;
+            case "/cancelOrder":
+                lastTestTrace.setY_issue_ms("ts-cancel-service");
+                if (ThreadLocalCache.cancelOrderType.get().equals("cancelOrder")) {
+                    lastTestTrace.setY_issue_dim_content("ts-inside-payment-service_ts-order-service=0," +
+                            "ts-inside-payment-service_ts-order-service_caller=ts-cancel-service");
+                } else {
+                    lastTestTrace.setY_issue_dim_content("ts-inside-payment-service_ts-order-other-service=0," +
+                            "ts-inside-payment-service_ts-order-other-service=ts-cancel-service");
+                }
+                break;
+            case "/execute/execute":
+                lastTestTrace.setY_issue_ms("ts-execute-service");
+                if (ThreadLocalCache.executeOrderType.get().equals("order")) {
+                    lastTestTrace.setY_issue_dim_content("ts-order-service_ts-order-service=0," +
+                            "ts-order-service_ts-order-service_caller=ts-execute-service");
+                } else {
+                    try {
+                        if (K8sUtil.getK8sImageByService("ts-execute-service").contains("1.1")) {
+                            return null;
+                        } else {
+                            lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
+                                    "ts-order-other-service_ts-order-other-service=ts-execute-service");
+                        }
+                    } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    break;
+
+                }
+            case "/execute/collected":
+                lastTestTrace.setY_issue_ms("ts-execute-service");
+                if (ThreadLocalCache.executeOrderType.get().equals("order")) {
+                    lastTestTrace.setY_issue_dim_content("ts-order-service_ts-order-service=0," +
+                            "ts-order-service_ts-order-service_caller=ts-execute-service");
+                } else {
+                    try {
+                        if (K8sUtil.getK8sImageByService("ts-execute-service").contains("1.1")) {
+                            return null;
+                        } else {
+                            lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
+                                    "ts-order-other-service_ts-order-other-service=ts-execute-service");
+                        }
+                    } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    break;
+                }
+                break;
+        }
 
         FlowTestResult flowTestResult = new FlowTestResult();
         flowTestResult.setTestCase(testCase);
@@ -47,18 +109,23 @@ public class GlobalExceptionHandler {
         return flowTestResult;
     }
 
+
+    private void setYissueDim(TestTrace lastTestTrace) throws IOException, NoSuchAlgorithmException,
+            KeyStoreException, KeyManagementException {
+
+    }
+
     @ExceptionHandler(UnknownException.class)
     @ResponseBody
     public FlowTestResult handleUnknownException(UnknownException e) {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
         TestTrace lastTestTrace = CollectionUtil.getLastElement(testTraces);
-        YissueDimDto yissueDimDto = ThreadLocalCache.yIssueDimDto.get();
 
         lastTestTrace.setError(1);
-        lastTestTrace.setY_issue_dim_type(yissueDimDto.getType());
-        lastTestTrace.setY_issue_ms(yissueDimDto.getMs());
-        lastTestTrace.setY_issue_dim_content(yissueDimDto.getContent());
+        lastTestTrace.setY_issue_dim_type("unknown");
+        lastTestTrace.setY_issue_ms("unknown");
+        lastTestTrace.setY_issue_dim_content("unknown");
 
         FlowTestResult flowTestResult = new FlowTestResult();
         flowTestResult.setTestCase(testCase);

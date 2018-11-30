@@ -14,7 +14,7 @@ public class TestTrace implements Serializable {
 
     @Id
     @Column(name = DBConstants.TEST_TRACE_ID)
-    @GeneratedValue(generator  = DBConstants.ID_STRATEGY)
+    @GeneratedValue(generator = DBConstants.ID_STRATEGY)
     @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.ASSIGNED)
     private String testTraceId;
 
@@ -48,10 +48,11 @@ public class TestTrace implements Serializable {
     @Column(name = DBConstants.Y_ISSUE_MS)
     private String y_issue_ms;
 
-    @Column(name = DBConstants.USER_TYPE)
+    @Column(name = DBConstants.Y_ISSUE_DIM_TYPE)
     private String y_issue_dim_type;
 
-    @Column(name = DBConstants.Y_ISSUE_DIM_CONTENT, columnDefinition = "varchar(5000) COMMENT 'Issue Dimension Content'")
+    @Column(name = DBConstants.Y_ISSUE_DIM_CONTENT, columnDefinition = "varchar(5000) COMMENT 'Issue Dimension " +
+            "Content'")
     private String y_issue_dim_content;
 
     @Column(name = DBConstants.SEQUENCE)

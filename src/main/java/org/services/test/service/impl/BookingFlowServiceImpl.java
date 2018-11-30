@@ -21,6 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @Service
@@ -164,7 +168,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
      ***************************/
     @Override
     public FlowTestResult bookFlow() throws JsonProcessingException {
-
         List<TestTrace> traces = new ArrayList<>();
         ThreadLocalCache.testTracesThreadLocal.set(traces);
         ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
@@ -193,6 +196,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
          * 2nd step: query ticket
          ***************************/
         QueryTicketRequestDto queryTicketRequestDto = ParamUtil.constructQueryTicketReqDto();
+        if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)) {
+            ThreadLocalCache.executeOrderType.set("orderOther");
+        } else {
+            ThreadLocalCache.executeOrderType.set("order");
+        }
         List<QueryTicketResponseDto> queryTicketResponseDtos = testQueryTicket(headers, queryTicketRequestDto);
 
 

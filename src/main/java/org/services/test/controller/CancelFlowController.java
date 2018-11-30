@@ -1,15 +1,15 @@
 package org.services.test.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.services.test.cache.ThreadLocalCache;
 import org.services.test.entity.dto.BasicMessage;
 import org.services.test.entity.dto.CancelOrderRequestDto;
 import org.services.test.entity.dto.FlowTestResult;
-import org.services.test.entity.dto.YissueDimDto;
 import org.services.test.service.CancelFlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,9 +23,8 @@ public class CancelFlowController {
     @Autowired
     private CancelFlowService cancelFlowService;
 
-    @PostMapping("/cancelflow")
-    public FlowTestResult cancelFlow(@RequestBody YissueDimDto dto) throws JsonProcessingException {
-        ThreadLocalCache.yIssueDimDto.set(dto);
+    @GetMapping("/cancelflow")
+    public FlowTestResult cancelFlow() throws JsonProcessingException {
         return cancelFlowService.cancelFlow();
     }
 
