@@ -115,7 +115,7 @@ public class AdminOrderFlowServiceImpl implements AdminOrderFlowService {
     }
 
     /**
-     * desc: login -> get all orders  => (get one  update ) : (add ->  update) => delete -> query route -> query trave
+     * describe: login -> get all orders  => (get one  update ) : (add ->  update) => if: delete -> if: query route -> if: query trave
      *
      * @return
      * @throws Exception
