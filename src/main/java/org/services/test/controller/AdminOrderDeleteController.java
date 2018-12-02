@@ -1,9 +1,7 @@
 package org.services.test.controller;
 
 import org.services.test.entity.dto.*;
-import org.services.test.service.AdminService;
-import org.services.test.service.BookingFlowService;
-import org.services.test.service.impl.AdminServiceImpl;
+import org.services.test.service.AdminOrderFlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,12 +16,12 @@ public class AdminOrderDeleteController {
 
 
     @Autowired
-    private AdminService adminService;
+    private AdminOrderFlowService adminService;
 
-//    @GetMapping("/listAndDeleteOrder")
-//    public FlowTestResult listAndDeleteOrder() {
-//        return bookingFlowService.bookFlow();
-//    }
+    @GetMapping("/listAndDeleteOrder")
+    public FlowTestResult listAndDeleteOrder() throws Exception {
+        return adminService.adminOrderFlow();
+    }
 
     @GetMapping("/login")
     public Contact testLogin() {

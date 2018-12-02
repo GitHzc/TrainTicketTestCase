@@ -1,12 +1,15 @@
 package org.services.test.util;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class ParamUtil {
     /**********************************************
@@ -23,6 +26,13 @@ public class ParamUtil {
 //        loginRequestDto.setPassword("123456");
 //        loginRequestDto.setVerificationCode("abcd");
         return loginRequestDto;
+    }
+
+    public static AdminLoginInfoDto constructAdminLoginRequestDto() {
+        AdminLoginInfoDto adminLoginInfoDto = new AdminLoginInfoDto();
+        adminLoginInfoDto.setName("adminroot");
+        adminLoginInfoDto.setPassword("adminroot");
+        return adminLoginInfoDto;
     }
 
     public static QueryTicketRequestDto constructQueryTicketReqDto() {
@@ -99,4 +109,80 @@ public class ParamUtil {
         foodRequestDto.setTripId(tripId);
         return foodRequestDto;
     }
+
+
+    public static ConsignInsertRequestDto constructConsignRequestDto(Order order) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        ConsignInsertRequestDto consignInsertRequestDto = new ConsignInsertRequestDto();
+        consignInsertRequestDto.setAccountId(order.getAccountId());
+        consignInsertRequestDto.setConsignee(RandomUtil.getStringRandom(10));
+        consignInsertRequestDto.setFrom(order.getFrom());
+        consignInsertRequestDto.setHandleDate(dateFormat.format(order.getTravelDate()));
+        consignInsertRequestDto.setWithin(false);
+        consignInsertRequestDto.setPhone(RandomUtil.getTel());
+        consignInsertRequestDto.setTargetDate(DateUtils.addDays(order.getTravelDate(), 1).toString());
+        consignInsertRequestDto.setTo(order.getTo());
+        consignInsertRequestDto.setWeight(RandomUtil.getRamdomWeight());
+        return consignInsertRequestDto;
+    }
+
+    public static StationNameRequestDto constructStationNameRequestDto(String stationId) {
+        StationNameRequestDto stationNameRequestDto = new StationNameRequestDto();
+        stationNameRequestDto.setStationId(stationId);
+        return stationNameRequestDto;
+    }
+
+    public static VoucherUIRequestDto constructVoucherUIRequestDto(Order order) {
+        VoucherUIRequestDto voucherUIRequestDto = new VoucherUIRequestDto();
+        voucherUIRequestDto.setOrderId(order.getId().toString());
+        voucherUIRequestDto.setTrain_number(order.getTrainNumber());
+        return voucherUIRequestDto;
+    }
+
+    public static VoucherInfoRequestDto constructVoucherInfoRequestDto(Order order) {
+        VoucherInfoRequestDto voucherInfoRequestDto = new VoucherInfoRequestDto();
+        voucherInfoRequestDto.setOrderId(order.getId().toString());
+        voucherInfoRequestDto.setType(1);
+        return voucherInfoRequestDto;
+    }
+
+    public static AddContactsInfo constructAddContactsInfo() {
+        AddContactsInfo addContactsInfo = new AddContactsInfo();
+        addContactsInfo.setDocumentNumber(RandomUtil.getStringRandom(10));
+        addContactsInfo.setDocumentType(1);
+        addContactsInfo.setName(RandomUtil.getStringRandom(8));
+        addContactsInfo.setPhoneNumber(RandomUtil.getTel());
+        return addContactsInfo;
+    }
+
+    public static OrderQueryRequestDto constructOrderQueryRequestDto() {
+        OrderQueryRequestDto orderQueryRequestDto = new OrderQueryRequestDto();
+        orderQueryRequestDto.disableBoughtDateQuery();
+        orderQueryRequestDto.disableStateQuery();
+        orderQueryRequestDto.disableTravelDateQuery();
+        return orderQueryRequestDto;
+    }
+
+
+    public static AddOrderRequestDto constructAdminAddOrder(Contact contact){
+        AddOrderRequestDto addOrderRequestDto = new AddOrderRequestDto();
+        addOrderRequestDto.setLoginid(contact.getId());
+        Order order = new Order();
+        order.setBoughtDate(new Date());
+        order.setTravelDate(new Date());
+        order.setTravelTime(new Date());
+        order.setAccountId(UUID.fromString(contact.getId()));
+        order.setContactsName("lisi");
+        order.setTrainNumber("G1234");
+        order.setDocumentType(1);
+        order.setStatus(0);
+        order.setSeatNumber("B2");
+        order.setSeatClass(1);
+        order.setPrice("25.5");
+        order.setFrom("Nan Jin");
+        order.setTo("Shang Hai");
+        addOrderRequestDto.setOrder(order);
+        return addOrderRequestDto;
+    }
+
 }

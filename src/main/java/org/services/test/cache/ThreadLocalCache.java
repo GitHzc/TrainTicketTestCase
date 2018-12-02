@@ -17,10 +17,16 @@ public class ThreadLocalCache {
     public static final ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
     public static final ThreadLocal<TestCase> testCaseThreadLocal = new ThreadLocal<>();
 
+    public static final ThreadLocal<String> cancelOrderType = new ThreadLocal<>();
+    public static final ThreadLocal<String> executeOrderType = new ThreadLocal<>();
+
+
     public static void threadLocalClean() {
         testCaseIdThreadLocal.remove();
         testTracesThreadLocal.remove();
         testCaseThreadLocal.remove();
+        cancelOrderType.remove();
+        executeOrderType.remove();
         logger.info("clean ThreadLocal");
     }
 }

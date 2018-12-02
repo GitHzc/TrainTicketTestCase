@@ -12,10 +12,10 @@ public class TestCase implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Id()
+    @Id
     @Column(name = DBConstants.TEST_CASE_ID)
     @GeneratedValue(generator  = DBConstants.ID_STRATEGY)
-    @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.UUID)
+    @GenericGenerator(name = DBConstants.ID_STRATEGY, strategy = DBConstants.ASSIGNED)
     private String testCaseId;
 
     @Column(name = DBConstants.SESSION_ID)

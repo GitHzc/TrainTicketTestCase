@@ -11,7 +11,6 @@ import org.springframework.web.client.ResponseErrorHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
@@ -33,7 +32,7 @@ public class RestTemplateResponseErrorHandler implements ResponseErrorHandler {
             errorBody = objectMapper.readValue(
                     new BufferedReader(new InputStreamReader(httpResponse.getBody())), ErrorBody.class);
         } catch (Exception e) {
-            throw new UnknownException("unknown error");
+            throw new UnknownException("unknown error: errorBody");
         }
 
         if ("java.lang.IndexOutOfBoundsException".equals(errorBody.getException())) {
@@ -48,7 +47,7 @@ public class RestTemplateResponseErrorHandler implements ResponseErrorHandler {
 
         if (httpResponse.getStatusCode().series() == CLIENT_ERROR
                 || httpResponse.getStatusCode().series() == SERVER_ERROR) {
-            throw new UnknownException("unknown error");
+            throw new UnknownException("unknown error: 300 400 500 error");
         }
     }
 }
