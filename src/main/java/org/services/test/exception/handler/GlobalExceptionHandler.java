@@ -117,12 +117,6 @@ public class GlobalExceptionHandler {
         return flowTestResult;
     }
 
-
-    private void setYissueDim(TestTrace lastTestTrace) throws IOException, NoSuchAlgorithmException,
-            KeyStoreException, KeyManagementException {
-
-    }
-
     @ExceptionHandler(UnknownException.class)
     @ResponseBody
     public FlowTestResult handleUnknownException(UnknownException e) {
