@@ -11,6 +11,8 @@ import org.services.test.exception.UnknownException;
 import org.services.test.service.impl.BookingFlowServiceImpl;
 import org.services.test.util.CollectionUtil;
 import org.services.test.util.K8sUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +29,20 @@ public class GlobalExceptionHandler {
 
     @Autowired
     private BookingFlowServiceImpl bookingFlowServiceImpl;
+
+    private static String imageInfo = null;
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    static {
+        try {
+            imageInfo = K8sUtil.getK8sImageByService("ts-execute-service");
+            logger.info(imageInfo);
+        } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @ExceptionHandler(SeqFaultException.class)
     @ResponseBody
@@ -67,15 +83,11 @@ public class GlobalExceptionHandler {
                     lastTestTrace.setY_issue_dim_content("ts-order-service_ts-order-service=0," +
                             "ts-order-service_ts-order-service_caller=ts-execute-service");
                 } else {
-                    try {
-                        if (K8sUtil.getK8sImageByService("ts-execute-service").contains("1.1")) {
-                            return null;
-                        } else {
-                            lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
-                                    "ts-order-other-service_ts-order-other-service=ts-execute-service");
-                        }
-                    } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | IOException e1) {
-                        e1.printStackTrace();
+                    if (imageInfo.contains("1.1") || imageInfo.contains("1.3")) {
+                        return null;
+                    } else {
+                        lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
+                                "ts-order-other-service_ts-order-other-service=ts-execute-service");
                     }
                     break;
 
@@ -86,15 +98,11 @@ public class GlobalExceptionHandler {
                     lastTestTrace.setY_issue_dim_content("ts-order-service_ts-order-service=0," +
                             "ts-order-service_ts-order-service_caller=ts-execute-service");
                 } else {
-                    try {
-                        if (K8sUtil.getK8sImageByService("ts-execute-service").contains("1.1")) {
-                            return null;
-                        } else {
-                            lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
-                                    "ts-order-other-service_ts-order-other-service=ts-execute-service");
-                        }
-                    } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException | IOException e1) {
-                        e1.printStackTrace();
+                    if (imageInfo.contains("1.1") || imageInfo.contains("1.3")) {
+                        return null;
+                    } else {
+                        lastTestTrace.setY_issue_dim_content("ts-order-other-service_ts-order-other-service=0," +
+                                "ts-order-other-service_ts-order-other-service=ts-execute-service");
                     }
                     break;
                 }
