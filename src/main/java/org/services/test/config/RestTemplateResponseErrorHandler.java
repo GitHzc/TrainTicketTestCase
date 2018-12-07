@@ -44,7 +44,7 @@ public class RestTemplateResponseErrorHandler
             throw new UnknownException(e.getMessage());
         }
 
-        if ("java.lang.IndexOutOfBoundsException".equals(errorBody.getException())) {
+        if (httpResponse.getRawStatusCode() == 500) {
             throw new SeqFaultException(errorBody, "seq error");
         }
 

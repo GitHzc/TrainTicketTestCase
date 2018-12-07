@@ -12,8 +12,9 @@ public class RandomUtil {
     }
 
     public static boolean getRandomTrueOrFalse() {
-        Random random = new Random();
-        return random.nextBoolean();
+        double random = Math.random();
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" + random);
+        return random > 0.5;
     }
 
     private static String[] telFirst = "134,135,136,137,138,139,150,151,152,157,158,159,130,131,132,155,156,133,153"

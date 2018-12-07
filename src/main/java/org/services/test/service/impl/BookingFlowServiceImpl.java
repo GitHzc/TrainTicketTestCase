@@ -231,7 +231,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
 
-        if (null == confirmRequestDto || null == confirmResponseDto.getOrder()) {
+        if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
             FlowTestResult bftr = new FlowTestResult();
             bftr.setTestCase(testCase);
             bftr.setTestTraces(traces);
