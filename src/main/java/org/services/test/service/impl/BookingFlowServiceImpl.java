@@ -2,15 +2,14 @@ package org.services.test.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
-import org.aspectj.weaver.ast.Test;
 import org.services.test.cache.ThreadLocalCache;
 import org.services.test.config.ClusterConfig;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.exception.ConfigFaultException;
+import org.services.test.exception.UnknownException;
 import org.services.test.repository.TestCaseRepository;
 import org.services.test.repository.TestTraceRepository;
 import org.services.test.service.BookingFlowService;
@@ -20,6 +19,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -80,9 +80,20 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             uri = "/travel/query";
         }
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
-        ResponseEntity<List<QueryTicketResponseDto>> ret = restTemplate.exchange(url, HttpMethod.POST, req,
-                new ParameterizedTypeReference<List<QueryTicketResponseDto>>() {
-                });
+        ResponseEntity<List<QueryTicketResponseDto>> ret = null;
+        try {
+            ret =restTemplate.exchange(url, HttpMethod.POST, req,
+                    new ParameterizedTypeReference<List<QueryTicketResponseDto>>() {
+                    });
+        } catch (Exception e) {
+            if (e instanceof ResourceAccessException) {
+                throw new ConfigFaultException("Cpu error");
+            }
+            else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
+                throw e;
+            }
+        }
+
         return ret;
     }
 
@@ -168,6 +179,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
          * 1st step: login
          *****************/
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
+
+        // construct test case info
+        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto, new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
+
         LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
 
         // set headers
@@ -175,8 +190,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
         headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
-        // construct test case info
-        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto, headers, ThreadLocalCache.testCaseIdThreadLocal.get()));
+        // set cookie in test case
+        ThreadLocalCache.testCaseThreadLocal.get().setSessionId(String.valueOf(headers.get(ServiceConstant.COOKIE)));
+
+
 
 
         /***************************
@@ -221,29 +238,61 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             return flowTestResult;
         }
 
-        if (RandomUtil.getRandomTrueOrFalse()) {
-            /*********************
-             * 6th step: payment
-             *********************/
-            String orderId = confirmResponseDto.getOrder().getId().toString();
-            PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-            testTicketPayment(headers, paymentRequestDto);
 
-            if (RandomUtil.getRandomTrueOrFalse()) {
+        // get random number in [0, 4)
+        int randomNumber = new Random().nextInt(4);
+
+        switch (randomNumber) {
+            case 0: { // don't execute step 6, 7 and 8
+                break;
+            }
+            case 1: { // execute step 6
+                /*********************
+                 * 6th step: payment
+                 *********************/
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                testTicketPayment(headers, paymentRequestDto);
+                break;
+            }
+            case 2: { // execute step 6 and step 7
+                /*********************
+                 * 6th step: payment
+                 *********************/
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                testTicketPayment(headers, paymentRequestDto);
+
+                /*****************************
+                 * 7th step: collect ticket
+                 *****************************/
+                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+                testTicketCollection(headers, collectRequestDto);
+                break;
+            }
+            case 3: { // execute step 6, 7 and 8
+                /*********************
+                 * 6th step: payment
+                 *********************/
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                testTicketPayment(headers, paymentRequestDto);
+
                 /*****************************
                  * 7th step: collect ticket
                  *****************************/
                 CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
                 testTicketCollection(headers, collectRequestDto);
 
-                if (RandomUtil.getRandomTrueOrFalse()) {
-                    /****************************
-                     * 8th step: enter station
-                     ****************************/
-                    ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
-                    testEnterStation(headers, excuteRequestDto);
-                }
+                /****************************
+                 * 8th step: enter station
+                 ****************************/
+                ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
+                testEnterStation(headers, excuteRequestDto);
+                break;
             }
+            default:
+                break;
         }
 
         flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
@@ -337,8 +386,15 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String confirmTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace5 = new TestTrace();
-        testTrace5.setEntryApi("/preserve");
-        testTrace5.setEntryService("ts-preserve-service");
+        if (confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
+            testTrace5.setEntryApi("/preserve");
+            testTrace5.setEntryService("ts-preserve-service");
+        }
+        else {
+            testTrace5.setEntryApi("/preserveOther");
+            testTrace5.setEntryService("ts-preserve-other-service");
+        }
+
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
 
         try {
@@ -388,7 +444,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         getFood(foodRequestDto, headers);
     }
 
-    private List<Contact> testQueryContact(Map<String, List<String>> headers) {
+    private List<Contact> testQueryContact(Map<String, List<String>> headers) throws Exception {
         String contactTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace3 = new TestTrace();
@@ -462,6 +518,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         TestTrace testTrace = new TestTrace();
+        testTrace.setTestTraceId(loginTraceId);
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());

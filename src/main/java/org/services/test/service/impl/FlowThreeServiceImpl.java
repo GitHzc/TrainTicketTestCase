@@ -96,8 +96,6 @@ public class FlowThreeServiceImpl implements FlowThreeService {
     public Object getVoucherHtml(VoucherUIRequestDto voucherUIRequestDto, Map<String, List<String>> headers) {
 
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
-        //httpHeaders.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        //httpHeaders.setContentType(MediaType.TEXT_HTML);
         HttpEntity requestBody = new HttpEntity<>(httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/voucher.html");
@@ -111,8 +109,9 @@ public class FlowThreeServiceImpl implements FlowThreeService {
             if (e.getMessage().contains("JsonParseException")) {
                 return responseEntity.getBody();
             }
-
-            throw new UnknownException(e.getMessage());
+            else {
+                throw new UnknownException("Unknown error");
+            }
         }
 
         return responseEntity.getBody();
@@ -156,7 +155,9 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * Query station name by id, contain steps:
          *     4. query station name by id
          */
-        queryStationNameById(headers, orders);
+        // the logic is redundant in system now, so we get a random item instead.
+        Order randomOrder = RandomUtil.getRandomElementInList(orders);
+        queryStationNameById(headers, randomOrder.getFrom(), randomOrder.getTo());
 
 
         /*
@@ -187,14 +188,10 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         /*
          * 7. query station name by id
          */
-        StationNameRequestDto stationNameRequestDto;
-        for (ConsignInsertRequestDto consignOrder : consignOrders) {
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(consignOrder.getFrom());
-            testQueryStationNameById(headers, stationNameRequestDto);
+        // the logic is redundant in system now, so we get a random item instead.
+        ConsignInsertRequestDto randomConsignOrder = RandomUtil.getRandomElementInList(consignOrders);
+        queryStationNameById(headers, randomConsignOrder.getFrom(), randomConsignOrder.getTo());
 
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(consignOrder.getTo());
-            testQueryStationNameById(headers, stationNameRequestDto);
-        }
 
         bookingFlowServiceImpl.persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
         flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
@@ -216,7 +213,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * Get orders, contain steps:
          *     1. login
          *     2. query order service
-         *     3. query order service
+         *     3. query order other service
          */
         List<Order> orders = getOrders(headers);
         if (CollectionUtils.isEmpty(orders)) {
@@ -229,7 +226,9 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * Query station name by id, contain steps:
          *     4. query station name by id
          */
-        queryStationNameById(headers, orders);
+        // the logic is redundant in system now, so we get a random item instead.
+        Order randomOrder = RandomUtil.getRandomElementInList(orders);
+        queryStationNameById(headers, randomOrder.getFrom(), randomOrder.getTo());
 
 
         /*
@@ -366,8 +365,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         String getVoucherHtmlTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace6 = new TestTrace();
-        testTrace6.setEntryApi("/voucher.html?orderId="
-                + voucherUIRequestDto.getOrderId() + "&train_number=" + voucherUIRequestDto.getTrain_number());
+        testTrace6.setEntryApi("/voucher.html");
         testTrace6.setEntryService("ts-voucher-service");
         testTrace6.setEntryTimestamp(System.currentTimeMillis());
         testTrace6.setExpected_result(0);
@@ -430,7 +428,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
 
 
         /*
-         * 3. query order service
+         * 3. query order other service
          */
         OrderQueryRequestDto orderOtherQueryRequestDto = ParamUtil.constructOrderQueryRequestDto();
         List<Order> ordersOther = testQueryOrdersOther(headers, orderOtherQueryRequestDto);
@@ -442,18 +440,17 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         return allOrders;
     }
 
-    private void queryStationNameById(Map<String, List<String>> headers, List<Order> orders) throws Exception {
+    private void queryStationNameById(Map<String, List<String>> headers, String from, String to) throws Exception {
         /*
          * 4. query station name by id
          */
         StationNameRequestDto stationNameRequestDto;
-        for (Order order : orders) {
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getFrom());
-            testQueryStationNameById(headers, stationNameRequestDto);
 
-            stationNameRequestDto = ParamUtil.constructStationNameRequestDto(order.getTo());
-            testQueryStationNameById(headers, stationNameRequestDto);
-        }
+        stationNameRequestDto = ParamUtil.constructStationNameRequestDto(from);
+        testQueryStationNameById(headers, stationNameRequestDto);
+
+        stationNameRequestDto = ParamUtil.constructStationNameRequestDto(to);
+        testQueryStationNameById(headers, stationNameRequestDto);
     }
 
     private void saveDataForReturn(FlowTestResult flowTestResult) {

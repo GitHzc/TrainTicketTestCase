@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
         testTraces.get(testTraces.size() - 1).setExpected_result(1);
         testTraces.get(testTraces.size() - 1).setError(1);
         testTraces.get(testTraces.size() - 1).setY_issue_dim_type("Config");
-        testTraces.get(testTraces.size() - 1).setY_issue_dim_content(TestTraceUtil.checkErrorType(e.getErrorBody().getException()));
+        testTraces.get(testTraces.size() - 1).setY_issue_dim_content(TestTraceUtil.checkErrorType(e.getMessage()));
         testTraces.get(testTraces.size() - 1).setY_issue_ms(MsMappingEnum.getServiceNameByApi(testTraces.get(testTraces.size() - 1).getEntryApi()));
 
         FlowTestResult flowTestResult = new FlowTestResult();

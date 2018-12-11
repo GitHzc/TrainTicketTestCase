@@ -9,6 +9,6 @@ public class TestTraceUtil {
     }
 
     public static String checkErrorType(String exception) {
-        return exception.contains("Memory") ? "OutOfMemory" : (exception.contains("Timeout") ? "CPU" : "Unknown");
+        return exception.contains("Memory") ? "Memory" : (exception.contains("Cpu") ? "CPU" : "Unknown");
     }
 }
