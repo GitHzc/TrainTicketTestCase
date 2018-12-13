@@ -7,6 +7,7 @@ public interface ServiceConstant {
     String SET_COOKIE = "set-Cookie";
     String USER_AGENT = "user-agent";
     String CONSIGN_FLOW = "ConsignFlowTestClass";
+    String COMMON_SERVICE = "CommonService";
 
     String SHANG_HAI = "Shang Hai";
     String NAN_JING = "Nan Jing";

@@ -36,6 +36,4 @@ public class VoucherServiceImpl implements VoucherService {
         VoucherResponseDto resp = re.getBody();
         return resp;
     }
-
-
 }

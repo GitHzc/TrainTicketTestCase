@@ -1,6 +1,8 @@
 package org.services.test.controller;
 
+import org.services.test.TsServiceTestApplication;
 import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.entity.dto.InitCacheDataResponse;
 import org.services.test.entity.dto.LoginRequestDto;
 import org.services.test.entity.dto.LoginResponseDto;
 import org.services.test.service.BookingFlowService;
@@ -20,6 +22,13 @@ public class BookingFlowController {
     @GetMapping("/bookingflow")
     public FlowTestResult booking() {
         return bookingFlowService.bookFlow();
+    }
+
+    @GetMapping("/initBookingFlowCacheData")
+    public InitCacheDataResponse initBookingFlowCacheData(){
+        TsServiceTestApplication.initBookingFlowAccessTime();
+        InitCacheDataResponse initCacheDataResponse = new InitCacheDataResponse(true, "init cache data success");
+        return initCacheDataResponse;
     }
 
     @GetMapping("/login")

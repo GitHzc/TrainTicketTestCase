@@ -166,23 +166,18 @@ public class BookingFlowServiceImpl implements BookingFlowService {
          * 1st step: login
          *****************/
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
+
+        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto,new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
+
         LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
         if (!loginResponseDto.isStatus()) {
-            return new FlowTestResult();
+            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
 
-        // construct test case info
-        TestCase testCase = new TestCase();
-        testCase.setUserId(loginRequestDto.getEmail());
-        testCase.setSessionId(headers.get(ServiceConstant.COOKIE).toString());
-        testCase.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testCase.setUserDetail("user details");
-        testCase.setUserType("normal");
-        ThreadLocalCache.testCaseThreadLocal.set(testCase);
 
 
         /***************************
@@ -192,7 +187,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         List<QueryTicketResponseDto> queryTicketResponseDtos = testQueryTicket(headers, queryTicketRequestDto);
         // if query tickets is empty
         if (queryTicketResponseDtos == null || queryTicketResponseDtos.size() == 0) {
-            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
         /*************************************
@@ -201,7 +196,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         List<Contact> contacts = testQueryContact(headers);
         // if query contacts is empty
         if (contacts == null || contacts.size() == 0) {
-            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
         /***********************
@@ -219,9 +214,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         FoodRequestDto foodRequestDto = ParamUtil.constructFoodRequestDto(departureTime, startingStation,
                 endingStation, tripId);
         FoodResponseDto foodResponseDto = testQueryFood(headers, foodRequestDto);
-//        if (!foodResponseDto.isStatus()) {
-//            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
-//        }
+        if (!foodResponseDto.isStatus()) {
+            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+        }
 
         /******************************
          * 5th step: confirm ticket
@@ -231,49 +226,76 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
         if (!confirmResponseDto.isStatus()) {
-            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
-        if (RandomUtil.getRandomTrueOrFalse()) {
-            /*********************
-             * 6th step: payment
-             *********************/
-            String orderId = confirmResponseDto.getOrder().getId().toString();
-            PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-            boolean payResult = testTicketPayment(headers, paymentRequestDto);
-            if (!payResult) {
-                return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+        int randomNumber = new Random().nextInt(4);
+        switch (randomNumber) {
+            case 0:{
+                break;
             }
-
-
-            if (RandomUtil.getRandomTrueOrFalse()) {
+            case 1: {
+                /*********************
+                 * 6th step: payment
+                 *********************/
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+                if (!payResult) {
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+                }
+                break;
+            }
+            case 2: {
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+                if (!payResult) {
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+                }
                 /*****************************
                  * 7th step: collect ticket
                  *****************************/
                 CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
                 BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
                 if (!basicMessage.isStatus()) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
                 }
 
-                if (RandomUtil.getRandomTrueOrFalse()) {
-                    /****************************
-                     * 8th step: enter station
-                     ****************************/
-                    ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
-                    BasicMessage basicEnterStationMessage = testEnterStation(headers, excuteRequestDto);
-                    if (!basicEnterStationMessage.isStatus()) {
-                        return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
-                    }
-                }
+                break;
             }
+            case 3: {
+                String orderId = confirmResponseDto.getOrder().getId().toString();
+                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+                if (!payResult) {
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+                }
+
+                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+                BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
+                if (!basicMessage.isStatus()) {
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+                }
+                /****************************
+                 * 8th step: enter station
+                 ****************************/
+                ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
+                BasicMessage basicEnterStationMessage = testEnterStation(headers, excuteRequestDto);
+                if (!basicEnterStationMessage.isStatus()) {
+                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+                }
+                break;
+            }
+            default:
+                break;
         }
         // construct response ----  passed all flow
-        return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+        return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
     }
 
     @Transactional
-    public  FlowTestResult returnFlowTestResult(List<TestTrace> testTraceList, TestCase testCase) {
+    public FlowTestResult returnFlowTestResult(List<TestTrace> testTraceList, TestCase testCase) {
         testCaseRepository.save(testCase);
         testTraceRepository.saveAll(testTraceList);
         FlowTestResult bftr = new FlowTestResult();
@@ -298,9 +320,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace8.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace8.setTestClass("BookingFlowTestClass");
+        testTrace8.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace8.setTestMethod("enter");
         testTrace8.setTestTraceId(enterTraceId);
+        testTrace8.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace8.setError(0);
         testTrace8.setY_issue_ms("");
         testTrace8.setY_issue_dim_type("");
@@ -315,12 +338,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // ts-execute-service
         if (enterBasicMsg.getMessage() != null && enterBasicMsg.getMessage().contains("__")) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("execute_execute");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("execute_execute");
             // 服务端返回值
             int totalAccessTime = Integer.parseInt(enterBasicMsg.getMessage().split("__")[1]);
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("execute_execute", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("execute_execute", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace8 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -328,7 +351,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace8.setExpected_result(1);
                 testTrace8.setY_issue_ms("ts-execute-service");
                 testTrace8.setY_issue_dim_type("instance");
-                testTrace8.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace8.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                enterBasicMsg.setStatus(false);
             }
         }
 
@@ -353,9 +377,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace7.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace7.setTestClass("BookingFlowTestClass");
+        testTrace7.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace7.setTestMethod("collect");
         testTrace7.setTestTraceId(collectTraceId);
+        testTrace7.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace7.setError(0);
         testTrace7.setY_issue_ms("");
         testTrace7.setY_issue_dim_type("");
@@ -369,12 +394,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // ts-execute-service
         if (collectBasicMsg.getMessage() != null && collectBasicMsg.getMessage().contains("__")) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("execute_collected");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("execute_collected");
             // 服务端返回值
             int totalAccessTime = Integer.parseInt(collectBasicMsg.getMessage().split("__")[1]);
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("execute_collected", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("execute_collected", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace7 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -382,7 +407,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace7.setExpected_result(1);
                 testTrace7.setY_issue_ms("ts-execute-service");
                 testTrace7.setY_issue_dim_type("instance");
-                testTrace7.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace7.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                collectBasicMsg.setStatus(false);
             }
         }
 
@@ -408,9 +434,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace6.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace6.setTestClass("BookingFlowTestClass");
+        testTrace6.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace6.setTestMethod("pay");
         testTrace6.setTestTraceId(paymentTraceId);
+        testTrace6.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace6.setError(0);
         testTrace6.setY_issue_ms("");
         testTrace6.setY_issue_dim_type("");
@@ -451,9 +478,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace5.setTestClass("BookingFlowTestClass");
+        testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
+        testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace5.setError(0);
         testTrace5.setY_issue_ms("");
         testTrace5.setY_issue_dim_type("");
@@ -468,12 +496,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // ts-preserve-service
         if (confirmResponseDto.getMessage() != null && confirmResponseDto.getMessage().contains("__")) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("preserve");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("preserve");
             // 服务端返回值
             int totalAccessTime = Integer.parseInt(confirmResponseDto.getMessage().split("__")[1]);
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("preserve", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("preserve", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace5 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -481,7 +509,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace5.setExpected_result(1);
                 testTrace5.setY_issue_ms("ts-preserve-service");
                 testTrace5.setY_issue_dim_type("instance");
-                testTrace5.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace5.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                confirmResponseDto.setStatus(false);
             }
         }
 
@@ -505,9 +534,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace4.setTestClass("BookingFlowTestClass");
+        testTrace4.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace4.setTestMethod("getFood");
         testTrace4.setTestTraceId(foodTraceId);
+        testTrace4.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace4.setExpected_result(0);
         testTrace4.setError(0);
         testTrace4.setY_issue_ms("");
@@ -522,13 +552,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // 判断 foodResponseDto 的status 是否为false
         if (foodResponseDto.getMessage() != null && foodResponseDto.getMessage().contains("__")) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("food_getFood");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("food_getFood");
             // 服务端返回值
             int totalAccessTime = Integer.parseInt(foodResponseDto.getMessage().split("__")[1]);
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
 
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("food_getFood", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("food_getFood", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace4 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -536,7 +566,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace4.setExpected_result(1);
                 testTrace4.setY_issue_ms("ts-food-service");
                 testTrace4.setY_issue_dim_type("instance");
-                testTrace4.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace4.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                foodResponseDto.setStatus(false);
             }
         }
 
@@ -560,10 +591,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace3.setTestClass("BookingFlowTestClass");
+        testTrace3.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace3.setTestMethod("getContacts");
         testTrace3.setTestTraceId(contactTraceId);
         testTrace3.setError(0);
+        testTrace3.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace3.setY_issue_ms("");
         testTrace3.setY_issue_dim_type("");
         testTrace3.setY_issue_dim_content("");
@@ -576,12 +608,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         //ts-contacts-service
         if (contacts != null && contacts.size() > 0) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("contacts_findContacts");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("contacts_findContacts");
             // 服务端返回值
             int totalAccessTime = contacts.get(contacts.size() - 1).getDocumentType();
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("contacts_findContacts", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("contacts_findContacts", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace3 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -589,7 +621,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace3.setExpected_result(1);
                 testTrace3.setY_issue_ms("ts-contacts-service");
                 testTrace3.setY_issue_dim_type("instance");
-                testTrace3.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace3.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                contacts = null; // 出错就返回，停止
             }
         }
         //  ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
@@ -616,8 +649,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace2.setTestClass("BookingFlowTestClass");
+        testTrace2.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace2.setTestMethod("queryTicket");
+        testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace2.setTestTraceId(queryTicketTraceId);
         if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)) {
             testTrace2.setEntryApi("/travel2/query");
@@ -635,13 +669,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             //ts-travel-service
             // 客户端记录值
             if (queryTicketResponseDtos != null && queryTicketResponseDtos.size() > 0) {
-                int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("travel2_query");
+                int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("travel2_query");
                 int totalAccessTime = Integer.parseInt(queryTicketResponseDtos.get(queryTicketResponseDtos.size() - 1).getTrainTypeId());
 
                 System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
 
                 if (totalAccessTime > clientAccessTime) {
-                    TsServiceTestApplication.clientAccessTimeMap.put("travel2_query", totalAccessTime);
+                    TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("travel2_query", totalAccessTime);
                 } else {
                     // 此处为引用
                     testTrace2 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -649,7 +683,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     testTrace2.setExpected_result(1);
                     testTrace2.setY_issue_ms("ts-travel2-service");
                     testTrace2.setY_issue_dim_type("instance");
-                    testTrace2.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">" + clientAccessTime + "totalAccessTime");
+                    testTrace2.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                    queryTicketResponseDtos = null;  // 出错就停止，不往下走了
                 }
             }
         } else {
@@ -670,13 +705,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             //ts-travel-service
             if (queryTicketResponseDtos != null && queryTicketResponseDtos.size() > 0) {
                 // 客户端记录值
-                int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("travel_query");
+                int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("travel_query");
                 int totalAccessTime = Integer.parseInt(queryTicketResponseDtos.get(queryTicketResponseDtos.size() - 1).getTrainTypeId());
 
                 System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
 
                 if (totalAccessTime > clientAccessTime) {
-                    TsServiceTestApplication.clientAccessTimeMap.put("travel_query", totalAccessTime);
+                    TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("travel_query", totalAccessTime);
                 } else {
                     // 此处为引用
                     testTrace2 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -684,12 +719,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     testTrace2.setExpected_result(1);
                     testTrace2.setY_issue_ms("ts-travel-service");
                     testTrace2.setY_issue_dim_type("instance");
-                    testTrace2.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                    testTrace2.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                    queryTicketResponseDtos = null;  // 出错就停止，不往下走了
                 }
             }
         }
-
-
         System.out.println("----------" + testTrace2);
         return queryTicketResponseDtos;
     }
@@ -709,9 +743,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
-
+        testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace.setTestClass("BookingFlowTestClass");
+        testTrace.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
         try {
@@ -739,12 +773,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         //ts-login-service
         if (loginResponseDto.getMessage() != null && loginResponseDto.getMessage().contains("__")) {
             // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.clientAccessTimeMap.get("login");
+            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("login");
             // 服务端返回值
             int totalAccessTime = Integer.parseInt(loginResponseDto.getMessage().split("__")[1]);
             System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
             if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.clientAccessTimeMap.put("login", totalAccessTime);
+                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("login", totalAccessTime);
             } else {
                 // 此处为引用
                 testTrace = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
@@ -752,13 +786,24 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 testTrace.setExpected_result(1);
                 testTrace.setY_issue_ms("ts-login-service");
                 testTrace.setY_issue_dim_type("instance");
-                testTrace.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + clientAccessTime + "totalAccessTime");
+                testTrace.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                loginResponseDto.setStatus(false); // 让前面返回，不往下执行了
             }
         }
 
 
         System.out.println("------- " + testTrace);
         return loginResponseDto;
+    }
+
+    protected TestCase constructTestCase(LoginRequestDto loginRequestDto, Map<String, List<String>> headers, String testCaseId) {
+        TestCase testCase = new TestCase();
+        testCase.setUserId(loginRequestDto.getEmail());
+        testCase.setSessionId(String.valueOf(headers.get(ServiceConstant.COOKIE)));
+        testCase.setTestCaseId(testCaseId);
+        testCase.setUserDetail("user details");
+        testCase.setUserType("normal");
+        return testCase;
     }
 
 }

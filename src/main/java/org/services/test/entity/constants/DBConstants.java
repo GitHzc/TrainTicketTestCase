@@ -26,7 +26,7 @@ public interface DBConstants {
     String TEST_METHOD = "testMethod";
     String REQ_PARAM = "req_param";
     String EXPECTED_RESULT = "expected_result";
-    String ERROR = "is_error";
+    String ERROR = "error";
     String Y_ISSUE_MS = "y_issue_ms";
     String Y_ISSUE_DIM_TYPE = "y_issue_dim_type";
     String Y_ISSUE_DIM_CONTENT = "y_issue_dim_content";
