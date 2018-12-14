@@ -44,7 +44,7 @@ public class RestTemplateResponseErrorHandler
         }
         catch (Exception e) {
             if (HttpStatus.SERVICE_UNAVAILABLE == httpResponse.getStatusCode()) {
-                throw new ConfigFaultException("memory error");
+                throw new ConfigFaultException("cpu error");
             }
 
         }

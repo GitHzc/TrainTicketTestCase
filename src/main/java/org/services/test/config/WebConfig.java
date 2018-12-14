@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .messageConverters(messageConverters)
                 .errorHandler(new RestTemplateResponseErrorHandler())
                 .setConnectTimeout(5000)
-                //.setReadTimeout(5000)
+                .setReadTimeout(5000)
                 .build();
 
     }

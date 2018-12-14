@@ -87,7 +87,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     });
         } catch (Exception e) {
             if (e instanceof ResourceAccessException) {
-                throw new ConfigFaultException("Cpu error");
+                throw new ConfigFaultException("cpu error");
             }
             else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
                 throw e;
@@ -231,7 +231,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         ConfirmRequestDto confirmRequestDto = ParamUtil.constructConfirmRequestDto(departureTime, startingStation,
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
-        if (null == confirmRequestDto || null == confirmResponseDto.getOrder()) {
+        if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
             flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
             flowTestResult.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
             persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
@@ -241,6 +241,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         // get random number in [0, 4)
         int randomNumber = new Random().nextInt(4);
+        System.out.println();
 
         switch (randomNumber) {
             case 0: { // don't execute step 6, 7 and 8
@@ -513,8 +514,10 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        loginHeaders.add(ServiceConstant.USER_AGENT, ThreadLocalCache.testCaseIdThreadLocal.get());
-        loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
+        // ThreadLocalCache.testCaseIdThreadLocal.get() + "," + loginTraceId
+
+        loginHeaders.add(ServiceConstant.USER_AGENT, "[weewewewewewew,weeeeeeeeeeeeeeeeeeeeeeeeee]");
+       //  loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         TestTrace testTrace = new TestTrace();

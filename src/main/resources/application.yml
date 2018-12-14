@@ -3,12 +3,13 @@ server:
 
 cluster:
   #10.141.211.179:30099  10.141.212.146:31380
-  host: 10.141.212.146
+  host: 10.141.211.179
   port: 31380
 
 spring:
   datasource:
-    url: jdbc:mysql://10.141.212.21:3306/ai_ops
+    #url: jdbc:mysql://10.141.212.21:3306/ai_ops
+    url: jdbc:mysql://10.141.212.21:3306/test_chuan
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver
