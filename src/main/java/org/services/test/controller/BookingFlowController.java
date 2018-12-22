@@ -40,6 +40,7 @@ public class BookingFlowController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cookie", "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
+
         headers.setContentType(MediaType.APPLICATION_JSON);
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         try {

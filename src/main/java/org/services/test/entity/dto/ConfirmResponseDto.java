@@ -11,6 +11,15 @@ public class ConfirmResponseDto extends BasicMessage implements Serializable {
 
     private Order order;
 
+    public ConfirmResponseDto() {
+    }
+
+    public ConfirmResponseDto(boolean status, String message, Order order) {
+        this.status = status;
+        this.message = message;
+        this.order = order;
+    }
+
     public Order getOrder() {
         return order;
     }
@@ -19,5 +28,25 @@ public class ConfirmResponseDto extends BasicMessage implements Serializable {
 
     public void setOrder(Order order) {
         this.order = order;
+    }
+
+    @Override
+    public boolean isStatus() {
+        return status;
+    }
+
+    @Override
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

@@ -111,7 +111,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
         HttpEntity<ConfirmRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
-        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/preserve");
+        String uri;
+        if (dto.getTo().equals(ServiceConstant.NAN_JING)) {
+            uri = "/preserveOther";
+        } else {
+            uri = "/preserve";
+        }
+
+        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
         ResponseEntity<ConfirmResponseDto> ret = restTemplate.exchange(url, HttpMethod.POST, req,
                 ConfirmResponseDto.class);
         return ret;
@@ -167,7 +174,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
          *****************/
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
 
-        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto,new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
+        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto, new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
 
         LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
         if (!loginResponseDto.isStatus()) {
@@ -177,7 +184,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
-
 
 
         /***************************
@@ -206,6 +212,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String departureTime = queryTicketRequestDto.getDepartureTime();
         String startingStation = queryTicketRequestDto.getStartingPlace();
         String endingStation = queryTicketRequestDto.getEndPlace();
+
         // todo
         // 如果instance 错误，这个地方是得不到的 get 0
         String tripId = queryTicketResponseDtos.get(0).getTripId().getType()
@@ -231,7 +238,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         int randomNumber = new Random().nextInt(4);
         switch (randomNumber) {
-            case 0:{
+            case 0: {
                 break;
             }
             case 1: {
@@ -468,52 +475,65 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), confirmTraceId));
 
         TestTrace testTrace5 = new TestTrace();
-        testTrace5.setEntryApi("/preserve");
-        testTrace5.setEntryService("ts-preserve-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
-        testTrace5.setExpected_result(0);
-        try {
-            testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
         testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
         testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
-        testTrace5.setError(0);
-        testTrace5.setY_issue_ms("");
-        testTrace5.setY_issue_dim_type("");
-        testTrace5.setY_issue_dim_content("");
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
-
-
-        ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
-        ConfirmResponseDto confirmResponseDto = confirmResponseDtoResp.getBody();
-        // todo
-        // confirmResponseDto 返回 status  false
-        // ts-preserve-service
-        if (confirmResponseDto.getMessage() != null && confirmResponseDto.getMessage().contains("__")) {
-            // 客户端记录值
-            int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("preserve");
-            // 服务端返回值
-            int totalAccessTime = Integer.parseInt(confirmResponseDto.getMessage().split("__")[1]);
-            System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
-            if (totalAccessTime > clientAccessTime) {
-                TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("preserve", totalAccessTime);
-            } else {
-                // 此处为引用
-                testTrace5 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
-                testTrace5.setError(1);
-                testTrace5.setExpected_result(1);
-                testTrace5.setY_issue_ms("ts-preserve-service");
-                testTrace5.setY_issue_dim_type("instance");
-                testTrace5.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
-                confirmResponseDto.setStatus(false);
-            }
+        try {
+            testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
 
+        ConfirmResponseDto confirmResponseDto = null;
+
+        if (!confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
+            testTrace5.setEntryApi("/preserve");
+            testTrace5.setEntryService("ts-preserve-service");
+            testTrace5.setExpected_result(0);
+            testTrace5.setError(0);
+            testTrace5.setY_issue_ms("");
+            testTrace5.setY_issue_dim_type("");
+            testTrace5.setY_issue_dim_content("");
+            ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
+            ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
+            confirmResponseDto = confirmResponseDtoResp.getBody();
+            // todo
+            // confirmResponseDto 返回 status  false
+            // ts-preserve-service
+            if (confirmResponseDto.getMessage() != null && confirmResponseDto.getMessage().contains("__")) {
+                // 客户端记录值
+                int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("preserve");
+                // 服务端返回值
+                int totalAccessTime = Integer.parseInt(confirmResponseDto.getMessage().split("__")[1]);
+                System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
+                if (totalAccessTime > clientAccessTime) {
+                    TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("preserve", totalAccessTime);
+                } else {
+                    // 此处为引用
+                    testTrace5 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
+                    testTrace5.setError(1);
+                    testTrace5.setExpected_result(1);
+                    testTrace5.setY_issue_ms("ts-preserve-service");
+                    testTrace5.setY_issue_dim_type("instance");
+                    testTrace5.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                    confirmResponseDto.setStatus(false);
+                }
+            }
+        } else {
+            testTrace5.setEntryApi("/preserveOther");
+            testTrace5.setEntryService("ts-preserve-other-service");
+            testTrace5.setExpected_result(0);
+            testTrace5.setError(0);
+            testTrace5.setY_issue_ms("");
+            testTrace5.setY_issue_dim_type("");
+            testTrace5.setY_issue_dim_content("");
+            ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
+            ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
+            confirmResponseDto = confirmResponseDtoResp.getBody();
+        }
 
         System.out.println("----------" + testTrace5);
         return confirmResponseDto;
