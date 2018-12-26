@@ -125,7 +125,14 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
         HttpEntity<ConfirmRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
-        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/preserve");
+        String uri;
+        if (dto.getTo().equals(ServiceConstant.NAN_JING)) {
+            uri = "/preserveOther";
+        } else {
+            uri = "/preserve";
+        }
+
+        String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
         ResponseEntity<ConfirmResponseDto> ret = restTemplate.exchange(url, HttpMethod.POST, req,
                 ConfirmResponseDto.class);
         return ret;
@@ -241,7 +248,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         // get random number in [0, 4)
         int randomNumber = new Random().nextInt(4);
-        System.out.println();
+        System.out.println("randomNumber: " + randomNumber);
 
         switch (randomNumber) {
             case 0: { // don't execute step 6, 7 and 8
@@ -318,7 +325,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace8.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace8.setTestClass("BookingFlowTestClass");
+        testTrace8.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace8.setTestMethod("enter");
         testTrace8.setTestTraceId(enterTraceId);
         testTrace8.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -345,7 +352,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         }
         testTrace7.setExpected_result(0);
         testTrace7.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace7.setTestClass("BookingFlowTestClass");
+        testTrace7.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace7.setTestMethod("collect");
         testTrace7.setTestTraceId(collectTraceId);
         testTrace7.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -371,7 +378,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             e.printStackTrace();
         }
         testTrace6.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace6.setTestClass(ServiceConstant.BOOKING_FLOW);
+        testTrace6.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace6.setTestMethod("pay");
         testTrace6.setTestTraceId(paymentTraceId);
         testTrace6.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -405,7 +412,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         }
         testTrace5.setExpected_result(0);
         testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace5.setTestClass(ServiceConstant.BOOKING_FLOW);
+        testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace5.setTestMethod("preserve");
         testTrace5.setTestTraceId(confirmTraceId);
         testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -434,7 +441,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         testTrace4.setExpected_result(0);
         testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace4.setTestClass(ServiceConstant.BOOKING_FLOW);
+        testTrace4.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace4.setTestMethod("getFood");
         testTrace4.setTestTraceId(foodTraceId);
         testTrace4.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -461,7 +468,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         testTrace3.setExpected_result(0);
         testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace3.setTestClass(ServiceConstant.BOOKING_FLOW);
+        testTrace3.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace3.setTestMethod("getContacts");
         testTrace3.setTestTraceId(contactTraceId);
         testTrace3.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -496,7 +503,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
         testTrace2.setExpected_result(0);
         testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace2.setTestClass(ServiceConstant.BOOKING_FLOW);
+        testTrace2.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace2.setTestMethod("queryTicket");
         testTrace2.setTestTraceId(queryTicketTraceId);
         testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
@@ -514,10 +521,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        // ThreadLocalCache.testCaseIdThreadLocal.get() + "," + loginTraceId
-
-        loginHeaders.add(ServiceConstant.USER_AGENT, "[weewewewewewew,weeeeeeeeeeeeeeeeeeeeeeeeee]");
-       //  loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
+        loginHeaders.add(ServiceConstant.USER_AGENT, ThreadLocalCache.testCaseIdThreadLocal.get());
+        loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         TestTrace testTrace = new TestTrace();
@@ -528,7 +533,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         testTrace.setExpected_result(0); // need to check
         testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
         testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace.setTestClass(ServiceConstant.CONSIGN_FLOW);
+        testTrace.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace.setTestMethod("login");
         testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
 

@@ -13,6 +13,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketTimeoutException;
 
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
@@ -23,11 +24,16 @@ public class RestTemplateResponseErrorHandler
 
     @Override
     public boolean hasError(ClientHttpResponse httpResponse)
-            throws IOException {
-        // Ignore exception
-        return (
-                httpResponse.getStatusCode().series() == CLIENT_ERROR
-                        || httpResponse.getStatusCode().series() == SERVER_ERROR);
+            throws IOException, UnknownException {
+                try {
+                    return (httpResponse.getStatusCode().series() == CLIENT_ERROR
+                            || httpResponse.getStatusCode().series() == SERVER_ERROR);
+                } catch (SocketTimeoutException e) {
+                    throw new ConfigFaultException("cpu error");
+                }
+
+//        return (httpResponse.getStatusCode().series() == CLIENT_ERROR
+//                || httpResponse.getStatusCode().series() == SERVER_ERROR);
     }
 
     @Override
@@ -50,11 +56,11 @@ public class RestTemplateResponseErrorHandler
         }
 
         if ("java.lang.IndexOutOfBoundsException".equals(errorBody.getException())) {
-            throw new SeqFaultException(errorBody, "seq error");
+            throw new UnknownException("unknown error");
         }
         else if ("org.springframework.web.client.HttpServerErrorException".equals(errorBody.getException()))
         {
-            throw new ConfigFaultException(errorBody, "memory error");
+            throw new UnknownException(errorBody, "unknown error");
         }
         else if ("java.net.SocketTimeoutException".equals(errorBody.getException())) {
             throw new ConfigFaultException(errorBody, "cpu error");

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 @ControllerAdvice
@@ -44,7 +45,7 @@ public class GlobalExceptionHandler {
         return flowTestResult;
     }
 
-    @ExceptionHandler(UnknownException.class)
+    @ExceptionHandler({UnknownException.class})
     @ResponseBody
     public FlowTestResult handleUnknownException(UnknownException e) {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
@@ -64,7 +65,7 @@ public class GlobalExceptionHandler {
         return flowTestResult;
     }
 
-    @ExceptionHandler(ConfigFaultException.class)
+    @ExceptionHandler({ConfigFaultException.class, SocketTimeoutException.class})
     @ResponseBody
     public FlowTestResult handleConfigFaultException(ConfigFaultException e) {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();

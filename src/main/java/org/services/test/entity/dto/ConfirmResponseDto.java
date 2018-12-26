@@ -15,7 +15,25 @@ public class ConfirmResponseDto extends BasicMessage implements Serializable {
         return order;
     }
 
+    @Override
+    public boolean isStatus() {
+        return status;
+    }
 
+    @Override
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
     public void setOrder(Order order) {
         this.order = order;

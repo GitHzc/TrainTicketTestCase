@@ -11,5 +11,6 @@ public interface ServiceConstant {
     String SU_ZHOU = "Su Zhou";
     String BOOKING_FLOW = "BookingFlowTestClass";
     String CONSIGN_FLOW = "ConsignFlowTestClass";
-    String USER_AGENT = "user_agent";
+    String COMMON_SERVICE = "CommonService";
+    String USER_AGENT = "user-agent";
 }
