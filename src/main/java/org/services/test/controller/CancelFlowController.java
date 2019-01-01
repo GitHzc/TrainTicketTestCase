@@ -1,8 +1,10 @@
 package org.services.test.controller;
 
+import org.services.test.TsServiceTestApplication;
 import org.services.test.entity.dto.BasicMessage;
 import org.services.test.entity.dto.CancelOrderRequestDto;
 import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.entity.dto.InitCacheDataResponse;
 import org.services.test.service.CancelFlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,15 @@ public class CancelFlowController {
     public FlowTestResult cancelFlow() {
         return cancelFlowService.cancelFlow();
     }
+
+
+    @GetMapping("/initCancelFlowCacheData")
+    public InitCacheDataResponse initBookingFlowCacheData() {
+        TsServiceTestApplication.initCancelFlowAccessTime();
+        InitCacheDataResponse initCacheDataResponse = new InitCacheDataResponse(true, "init cache data success");
+        return initCacheDataResponse;
+    }
+
 
     @GetMapping("/cancelOrder")
     public ResponseEntity<BasicMessage> cancelOrder() {

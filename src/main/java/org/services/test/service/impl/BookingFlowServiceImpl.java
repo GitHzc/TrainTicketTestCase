@@ -194,6 +194,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // if query tickets is empty
         if (queryTicketResponseDtos == null || queryTicketResponseDtos.size() == 0) {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+        } else {
+            queryTicketResponseDtos.remove(queryTicketResponseDtos.size() - 1);
+            if (queryTicketResponseDtos.size() == 0) {
+                return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+            }
         }
 
         /*************************************
@@ -203,6 +208,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         // if query contacts is empty
         if (contacts == null || contacts.size() == 0) {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+        } else {
+            contacts.remove(contacts.size() - 1);
+            if (contacts.size() == 0) {
+                return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+            }
         }
 
         /***********************
@@ -213,17 +223,15 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String startingStation = queryTicketRequestDto.getStartingPlace();
         String endingStation = queryTicketRequestDto.getEndPlace();
 
-        // todo
-        // 如果instance 错误，这个地方是得不到的 get 0
         String tripId = queryTicketResponseDtos.get(0).getTripId().getType()
                 + queryTicketResponseDtos.get(0).getTripId().getNumber(); //默认选第一辆
 
         FoodRequestDto foodRequestDto = ParamUtil.constructFoodRequestDto(departureTime, startingStation,
                 endingStation, tripId);
         FoodResponseDto foodResponseDto = testQueryFood(headers, foodRequestDto);
-        if (!foodResponseDto.isStatus()) {
-            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-        }
+//        if (!foodResponseDto.isStatus()) {
+//            return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//        }
 
         /******************************
          * 5th step: confirm ticket
@@ -500,8 +508,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
             ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
             confirmResponseDto = confirmResponseDtoResp.getBody();
-            // todo
-            // confirmResponseDto 返回 status  false
             // ts-preserve-service
             if (confirmResponseDto.getMessage() != null && confirmResponseDto.getMessage().contains("__")) {
                 // 客户端记录值
@@ -533,6 +539,26 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
             ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
             confirmResponseDto = confirmResponseDtoResp.getBody();
+            // ts-preserve-other-service
+            if (confirmResponseDto.getMessage() != null && confirmResponseDto.getMessage().contains("__")) {
+                // 客户端记录值
+                int clientAccessTime = TsServiceTestApplication.bookingFlowClientAccessTimeMap.get("preserveOther");
+                // 服务端返回值
+                int totalAccessTime = Integer.parseInt(confirmResponseDto.getMessage().split("__")[1]);
+                System.out.println(totalAccessTime + "----23333333------" + clientAccessTime);
+                if (totalAccessTime > clientAccessTime) {
+                    TsServiceTestApplication.bookingFlowClientAccessTimeMap.put("preserveOther", totalAccessTime);
+                } else {
+                    // 此处为引用
+                    testTrace5 = ThreadLocalCache.testTracesThreadLocal.get().get(ThreadLocalCache.testTracesThreadLocal.get().size() - 1);
+                    testTrace5.setError(1);
+                    testTrace5.setExpected_result(1);
+                    testTrace5.setY_issue_ms("ts-preserve-other-service");
+                    testTrace5.setY_issue_dim_type("instance");
+                    testTrace5.setY_issue_dim_content("clientAccessTime" + clientAccessTime + ">=" + totalAccessTime + "totalAccessTime");
+                    confirmResponseDto.setStatus(false);
+                }
+            }
         }
 
         System.out.println("----------" + testTrace5);

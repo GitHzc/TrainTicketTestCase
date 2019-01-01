@@ -17,6 +17,7 @@ import org.services.test.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Service
 public class FlowThreeServiceImpl implements FlowThreeService {
 
     @Autowired
@@ -235,7 +237,6 @@ public class FlowThreeServiceImpl implements FlowThreeService {
             testQueryStationNameById(headers, stationNameRequestDto);
         }
 
-        // todo
         return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
     }
 
@@ -251,8 +252,6 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         ThreadLocalCache.testTracesThreadLocal.set(new ArrayList<>());
         ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
 
-        FlowTestResult flowTestResult = new FlowTestResult();
-
         Map<String, List<String>> headers = new HashMap<>();
 
 
@@ -263,7 +262,10 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          *     3. query order service
          */
         List<Order> orders = getOrders(headers);
-        if (CollectionUtils.isEmpty(orders)) {
+        if(orders == null){
+            // 登陆不成功
+            return null;
+        } else if ( CollectionUtils.isEmpty(orders)) {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
@@ -581,6 +583,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
     }
 
     private List<Order> getOrders(Map<String, List<String>> headers) throws Exception {
+        List<Order> allOrders = new ArrayList<>();
         /*
          * 1. login
          */
@@ -617,10 +620,9 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         OrderQueryRequestDto orderOtherQueryRequestDto = ParamUtil.constructOrderQueryRequestDto();
         List<Order> ordersOther = testQueryOrdersOther(headers, orderOtherQueryRequestDto);
 
-        List<Order> allOrders = new ArrayList<>();
+
         allOrders.addAll(orders);
         allOrders.addAll(ordersOther);
-
         return allOrders;
     }
 

@@ -41,6 +41,7 @@ public class ParamUtil {
         // random select end station nanjing or suzhou
         queryTicketRequestDto.setStartingPlace(ServiceConstant.SHANG_HAI);
         if(RandomUtil.getRandomTrueOrFalse()){
+          //  queryTicketRequestDto.setStartingPlace(ServiceConstant.NAN_JING);
             queryTicketRequestDto.setEndPlace(ServiceConstant.NAN_JING);
         } else {
             queryTicketRequestDto.setEndPlace(ServiceConstant.SU_ZHOU);

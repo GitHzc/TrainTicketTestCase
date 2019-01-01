@@ -40,9 +40,6 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     @Autowired
     private TestCaseRepository testCaseRepository;
 
-    private static ThreadLocal<String> testCaseIdThreadLocal = new ThreadLocal<>();
-
-    private static ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
@@ -119,9 +116,9 @@ public class CancelFlowServiceImpl implements CancelFlowService {
 
     @Override
     public FlowTestResult cancelFlow() {
-        testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
+        ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
         List<TestTrace> traces = new ArrayList<>();
-        testTracesThreadLocal.set(traces);
+        ThreadLocalCache.testTracesThreadLocal.set(traces);
 
         /******************
          * 1st step: login
@@ -139,7 +136,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         TestCase testCase = new TestCase();
         testCase.setUserId(loginRequestDto.getEmail());
         testCase.setSessionId(headers.get(ServiceConstant.COOKIE).toString());
-        testCase.setTestCaseId(testCaseIdThreadLocal.get());
+        testCase.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testCase.setUserDetail("user details");
         testCase.setUserType("normal");
 
@@ -154,7 +151,13 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         List<Order> orders = testQueryOrder(headers, orderQueryRequestDto);
         if (orders == null || orders.size() == 0) {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+        } else {
+            orders.remove(orders.size() - 1);
+            if (orders.size() == 0) {
+                return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+            }
         }
+
 
         /*******************************
          * 3rd step: query order other
@@ -162,6 +165,11 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         List<Order> orderOthers = testQueryOrderOther(headers, orderQueryRequestDto);
         if (orderOthers == null || orderOthers.size() == 0) {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+        } else {
+            orderOthers.remove(orderOthers.size() - 1);
+            if (orderOthers.size() == 0) {
+                return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), testCase);
+            }
         }
         /*************************************
          * 4th step: calculate refund
@@ -223,7 +231,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace5.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace5.setTestMethod("cancelOrder");
         testTrace5.setTestTraceId(cancelTraceId);
@@ -233,8 +241,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace5.setY_issue_ms("");
         testTrace5.setY_issue_dim_type("");
         testTrace5.setY_issue_dim_content("");
-        testTracesThreadLocal.get().add(testTrace5);
-
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
         // todo
         // 判断 foodResponseDto 的status 是否为false
         if (basicMessage.getMessage() != null && basicMessage.getMessage().contains("__")) {
@@ -281,7 +288,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace4.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace4.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace4.setTestMethod("calculateRefund");
         testTrace4.setTestTraceId(calculateRefundTraceId);
@@ -291,7 +298,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace4.setY_issue_ms("");
         testTrace4.setY_issue_dim_type("");
         testTrace4.setY_issue_dim_content("");
-        testTracesThreadLocal.get().add(testTrace4);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
 
         // todo
         // 判断 foodResponseDto 的status 是否为false
@@ -334,7 +341,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        testTrace3.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace3.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace3.setTestMethod("queryOrderOther");
         testTrace3.setTestTraceId(queryOrderOtherTraceId);
@@ -344,7 +351,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace3.setY_issue_ms("");
         testTrace3.setY_issue_dim_type("");
         testTrace3.setY_issue_dim_content("");
-        testTracesThreadLocal.get().add(testTrace3);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
 
 
         ResponseEntity<List<Order>> orderOthersResp = queryOrderOther(orderQueryRequestDto, headers);
@@ -387,7 +394,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
             e.printStackTrace();
         }
         testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
-        testTrace2.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace2.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace2.setTestMethod("queryOrder");
         testTrace2.setTestTraceId(queryOrderTraceId);
@@ -396,7 +403,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace2.setY_issue_ms("");
         testTrace2.setY_issue_dim_type("");
         testTrace2.setY_issue_dim_content("");
-        testTracesThreadLocal.get().add(testTrace2);
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
         // orders 为 空数组
         // todo
         ResponseEntity<List<Order>> queryOrderResponseDtosResp = queryOrder(orderQueryRequestDto, headers);
@@ -440,7 +447,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace.setEntryTimestamp(System.currentTimeMillis());
         // TODO
         // loginResponseDto 返回 status false
-        testTrace.setTestCaseId(testCaseIdThreadLocal.get());
+        testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
         testTrace.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
@@ -455,8 +462,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         testTrace.setY_issue_ms("");
         testTrace.setY_issue_dim_type("");
         testTrace.setY_issue_dim_content("");
-        testTracesThreadLocal.get().add(testTrace);
-
+        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
 
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         try {

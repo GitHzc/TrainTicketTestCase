@@ -18,13 +18,14 @@ public class TsServiceTestApplication {
     public static void main(String[] args) {
         initBookingFlowAccessTime();
         initCancelFlowAccessTime();
-        flowThreeClientAccessTimeMap();
+        initFlowThreeClientAccessTimeMap();
         SpringApplication.run(TsServiceTestApplication.class, args);
     }
 
     public static void initBookingFlowAccessTime() {
         bookingFlowClientAccessTimeMap.put("food_getFood", 0);
         bookingFlowClientAccessTimeMap.put("preserve", 0);
+        bookingFlowClientAccessTimeMap.put("preserveOther", 0);
         // bookingFlowClientAccessTimeMap.put("inside_payment_pay", 0);
         bookingFlowClientAccessTimeMap.put("execute_collected", 0);
         bookingFlowClientAccessTimeMap.put("execute_execute", 0);
@@ -42,7 +43,7 @@ public class TsServiceTestApplication {
         cancelFlowClientAccessTimeMap.put("cancel_Order_flow", 0);
     }
 
-    public static void flowThreeClientAccessTimeMap() {
+    public static void initFlowThreeClientAccessTimeMap() {
         flowThreeClientAccessTimeMap.put("login", 0);
         flowThreeClientAccessTimeMap.put("query_order", 0);
         flowThreeClientAccessTimeMap.put("query_other_order",0);
