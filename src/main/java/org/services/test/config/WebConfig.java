@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
         RestTemplate restTemplate = restTemplateBuilder.errorHandler(
-                new RestTemplateResponseErrorHandler()).build();
+                new RestTemplateResponseErrorHandler()).setConnectTimeout(5000).setReadTimeout(5000).build();
         restTemplate.setMessageConverters(messageConverters);
 
         return restTemplate;

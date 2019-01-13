@@ -5,6 +5,7 @@ import org.services.test.entity.enums.MsMapping;
 import org.services.test.entity.TestCase;
 import org.services.test.entity.TestTrace;
 import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.exception.ConfigFaultException;
 import org.services.test.exception.InstanceFaultException;
 import org.services.test.exception.UnknownException;
 import org.services.test.service.impl.BookingFlowServiceImpl;
@@ -12,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import sun.security.krb5.Config;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 @ControllerAdvice
@@ -47,9 +50,16 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler({ConfigFaultException.class, SocketTimeoutException.class})
+    @ResponseBody
+    public FlowTestResult handleConfigFaultException(ConfigFaultException e) {
+
+        return null;
+    }
+
     @ExceptionHandler(value = InstanceFaultException.class)
     @ResponseBody
-    public  FlowTestResult errorHandler(InstanceFaultException e){
+    public FlowTestResult errorHandler(InstanceFaultException e) {
         TestCase testCase = ThreadLocalCache.testCaseThreadLocal.get();
         List<TestTrace> testTraces = ThreadLocalCache.testTracesThreadLocal.get();
 
