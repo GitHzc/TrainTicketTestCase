@@ -1,5 +1,6 @@
 package org.services.test.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.services.test.entity.dto.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -18,5 +19,5 @@ public interface CancelFlowService {
 
     ResponseEntity<BasicMessage> cancelOrder(CancelOrderRequestDto dto, Map<String, List<String>> headers);
 
-    FlowTestResult cancelFlow();
+    FlowTestResult cancelFlow() throws JsonProcessingException;
 }

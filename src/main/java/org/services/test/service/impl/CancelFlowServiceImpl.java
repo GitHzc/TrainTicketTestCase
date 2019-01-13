@@ -104,30 +104,30 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     }
 
     @Override
-    public FlowTestResult cancelFlow() {
+    public FlowTestResult cancelFlow() throws JsonProcessingException {
         ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
         List<TestTrace> traces = new ArrayList<>();
         ThreadLocalCache.testTracesThreadLocal.set(traces);
+
+        FlowTestResult flowTestResult = new FlowTestResult();
 
         /******************
          * 1st step: login
          *****************/
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
+
+        // construct test case info
+        ThreadLocalCache.testCaseThreadLocal.set(bookingFlowServiceImpl.constructTestCase(loginRequestDto, new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
+
         LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
 
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
+        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
 
-        // construct test case info
-        TestCase testCase = new TestCase();
-        testCase.setUserId(loginRequestDto.getEmail());
-        testCase.setSessionId(headers.get(ServiceConstant.COOKIE).toString());
-        testCase.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testCase.setUserDetail("user details");
-        testCase.setUserType("normal");
-
-        ThreadLocalCache.testCaseThreadLocal.set(testCase);
+        // set cookie in test case
+        ThreadLocalCache.testCaseThreadLocal.get().setSessionId(String.valueOf(headers.get(ServiceConstant.COOKIE)));
 
         /***************************
          * 2nd step: query tickets
@@ -146,34 +146,46 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         /*************************************
          * 4th step: calculate refund
          *************************************/
-        if (null != orderOthers && !orderOthers.isEmpty()) {
-            orders.addAll(orderOthers);
-        }
 
         // get order ids that status is pay or not pay.
         List<String> orderIds = orders.stream().filter(order -> order.getStatus() == 0 || order.getStatus() == 1)
                 .map(order -> order.getId().toString()).collect(Collectors.toList());
+        List<String> orderOtherIds = orderOthers.stream().filter(order -> order.getStatus() == 0 || order.getStatus()
+                == 1).map(order -> order.getId().toString()).collect(Collectors.toList());
 
-        logger.info(orderIds.toString());
-        if (!orderIds.isEmpty()) {
-            String orderId = RandomUtil.getRandomElementInList(orderIds);
-            RefundResponseDto refundResponseDto = testCalculateRefund(headers, orderId);
+        String orderId = null;
+        if (RandomUtil.getRandomTrueOrFalse()){
+            if (!orderIds.isEmpty()) {
+                orderId = RandomUtil.getRandomElementInList(orderIds);
+                ThreadLocalCache.cancelOrderType.set("cancelOrder");
+            }
+        }else {
+            if (!orderOtherIds.isEmpty()) {
+                orderId = RandomUtil.getRandomElementInList(orderOtherIds);
+                ThreadLocalCache.cancelOrderType.set("cancelOrderOther");
+            }
+        }
+
+        if (null != orderId) {
+
+            testCalculateRefund(headers, orderId);
+
             /***************************
              * 5th step: cancel order
              ***************************/
-            BasicMessage basicMessage = testCancelService(headers, orderId);
+            testCancelService(headers, orderId);
         }
+
         // construct response
-        FlowTestResult bftr = new FlowTestResult();
-        bftr.setTestCase(testCase);
-        bftr.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
+        flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
+        flowTestResult.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
+        bookingFlowServiceImpl.persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
 
-        bookingFlowServiceImpl.persistTestData(testCase, ThreadLocalCache.testTracesThreadLocal.get());
-
-        return bftr;
+        return flowTestResult;
     }
 
-    private BasicMessage testCancelService(Map<String, List<String>> headers, String orderId) {
+    private BasicMessage testCancelService(Map<String, List<String>> headers, String orderId) throws
+            JsonProcessingException {
         String cancelTraceId = UUIDUtil.generateUUID();
 
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
@@ -182,19 +194,15 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         cancelOrderRequestDto.setOrderId(orderId);
 
         TestTrace testTrace5 = new TestTrace();
-        testTrace5.setSequence(5);
+        testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace5.setEntryApi("/cancelOrder");
         testTrace5.setEntryService("ts-cancel-service");
         testTrace5.setEntryTimestamp(System.currentTimeMillis());
         testTrace5.setError(0);
         testTrace5.setExpected_result(0);
-        try {
-            testTrace5.setReq_param(objectMapper.writeValueAsString(cancelOrderRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace5.setReq_param(objectMapper.writeValueAsString(cancelOrderRequestDto));
         testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace5.setTestClass("CancelFlowTestClass");
+        testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace5.setTestMethod("cancelOrder");
         testTrace5.setTestTraceId(cancelTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
@@ -206,7 +214,8 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         return basicMessage;
     }
 
-    private RefundResponseDto testCalculateRefund(Map<String, List<String>> headers, String orderId) {
+    private RefundResponseDto testCalculateRefund(Map<String, List<String>> headers, String orderId) throws
+            JsonProcessingException {
         String calculateRefundTraceId = UUIDUtil.generateUUID();
 
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
@@ -215,19 +224,15 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         refundRequestDto.setOrderId(orderId);
 
         TestTrace testTrace4 = new TestTrace();
-        testTrace4.setSequence(4);
+        testTrace4.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace4.setEntryApi("/cancelCalculateRefund");
         testTrace4.setEntryService("ts-cancel-service");
         testTrace4.setEntryTimestamp(System.currentTimeMillis());
         testTrace4.setError(0);
         testTrace4.setExpected_result(0);
-        try {
-            testTrace4.setReq_param(objectMapper.writeValueAsString(refundRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace4.setReq_param(objectMapper.writeValueAsString(refundRequestDto));
         testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace4.setTestClass("CancelFlowTestClass");
+        testTrace4.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace4.setTestMethod("calculateRefund");
         testTrace4.setTestTraceId(calculateRefundTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
@@ -240,23 +245,19 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     }
 
     private List<Order> testQueryOrderOther(Map<String, List<String>> headers, OrderQueryRequestDto
-            orderQueryRequestDto) {
+            orderQueryRequestDto) throws JsonProcessingException {
         String queryOrderOtherTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace3 = new TestTrace();
-        testTrace3.setSequence(3);
+        testTrace3.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace3.setEntryApi("/orderOther/query");
         testTrace3.setEntryService("ts-order-other-service");
         testTrace3.setEntryTimestamp(System.currentTimeMillis());
         testTrace3.setError(0);
         testTrace3.setExpected_result(0);
-        try {
-            testTrace3.setReq_param(objectMapper.writeValueAsString(orderQueryRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace3.setReq_param(objectMapper.writeValueAsString(orderQueryRequestDto));
         testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace3.setTestClass("BookingFlowTestClass");
+        testTrace3.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace3.setTestMethod("queryOrderOther");
         testTrace3.setTestTraceId(queryOrderOtherTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
@@ -270,25 +271,22 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         return orderOthers;
     }
 
-    private List<Order> testQueryOrder(Map<String, List<String>> headers, OrderQueryRequestDto orderQueryRequestDto) {
+    private List<Order> testQueryOrder(Map<String, List<String>> headers, OrderQueryRequestDto orderQueryRequestDto)
+            throws JsonProcessingException {
         String queryOrderTraceId = UUIDUtil.generateUUID();
         headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
                 queryOrderTraceId));
 
         TestTrace testTrace2 = new TestTrace();
-        testTrace2.setSequence(2);
+        testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace2.setEntryApi("/order/query");
         testTrace2.setEntryService("ts-order-service");
         testTrace2.setEntryTimestamp(System.currentTimeMillis());
         testTrace2.setError(0);
         testTrace2.setExpected_result(0);
-        try {
-            testTrace2.setReq_param(objectMapper.writeValueAsString(orderQueryRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace2.setReq_param(objectMapper.writeValueAsString(orderQueryRequestDto));
         testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace2.setTestClass("CancelFlowTestClass");
+        testTrace2.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace2.setTestMethod("queryOrder");
         testTrace2.setTestTraceId(queryOrderTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
@@ -300,7 +298,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         return orders;
     }
 
-    private LoginResponseDto testLogin(LoginRequestDto loginRequestDto) {
+    private LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws JsonProcessingException {
         String loginTraceId = UUIDUtil.generateUUID();
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
@@ -309,19 +307,15 @@ public class CancelFlowServiceImpl implements CancelFlowService {
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         TestTrace testTrace = new TestTrace();
-        testTrace.setSequence(1);
+        testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
         testTrace.setEntryApi("/login");
         testTrace.setEntryService("ts-login-service");
         testTrace.setEntryTimestamp(System.currentTimeMillis());
         testTrace.setError(0);
         testTrace.setExpected_result(0);
-        try {
-            testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
         testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace.setTestClass("CancelFlowTestClass");
+        testTrace.setTestClass(ServiceConstant.COMMON_SERVICE);
         testTrace.setTestMethod("login");
         testTrace.setTestTraceId(loginTraceId);
         ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);

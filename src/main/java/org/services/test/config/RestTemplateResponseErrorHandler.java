@@ -29,7 +29,7 @@ public class RestTemplateResponseErrorHandler
                     return (httpResponse.getStatusCode().series() == CLIENT_ERROR
                             || httpResponse.getStatusCode().series() == SERVER_ERROR);
                 } catch (SocketTimeoutException e) {
-                    throw new ConfigFaultException("cpu error");
+                    throw new ConfigFaultException("memory error");
                 }
 
 //        return (httpResponse.getStatusCode().series() == CLIENT_ERROR
@@ -50,7 +50,7 @@ public class RestTemplateResponseErrorHandler
         }
         catch (Exception e) {
             if (HttpStatus.SERVICE_UNAVAILABLE == httpResponse.getStatusCode()) {
-                throw new ConfigFaultException("cpu error");
+                throw new ConfigFaultException("memory error");
             }
 
         }
@@ -60,10 +60,10 @@ public class RestTemplateResponseErrorHandler
         }
         else if ("org.springframework.web.client.HttpServerErrorException".equals(errorBody.getException()))
         {
-            throw new UnknownException(errorBody, "unknown error");
+            throw new UnknownException(errorBody, "memory error");
         }
         else if ("java.net.SocketTimeoutException".equals(errorBody.getException())) {
-            throw new ConfigFaultException(errorBody, "cpu error");
+            throw new ConfigFaultException(errorBody, "memory error");
         }
 
         if (httpResponse.getStatusCode().series() == CLIENT_ERROR

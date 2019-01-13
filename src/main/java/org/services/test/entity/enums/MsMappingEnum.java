@@ -9,7 +9,18 @@ public enum MsMappingEnum {
     PRESERVE("/preserve", "ts-preserve-service"),
     PAYMENT("/inside_payment/pay", "ts-inside-payment-service"),
     COLLECTION("/execute/collected", "ts-execute-service"),
-    ENTER("/execute/execute", "ts-execute-service");
+    ENTER("/execute/execute", "ts-execute-service"),
+
+    ORDER_QUERY("/order/query", "ts-order-service"),
+    ORDER_OTHER_QUERY("/orderOther/query", "ts-order-other-service"),
+    CANCEL_REFUND("/cancelCalculateRefund", "ts-cancel-service"),
+    CANCEL("/cancelCalculateRefund", "ts-cancel-service"),
+
+    STATION_QUERY("/station/queryById", "ts-station-service"),
+    CONSIGN_INSERT("/consign/insertConsign", "ts-consign-service"),
+    CONSIGN_QUERY_BY_ACCOUNT("/consign/findByAccountId", "ts-consign-service"),
+    VOUCHER("/voucher.html", "ts-voucher-service"),
+    VOUCHER_QUERY("/getVoucher", "ts-voucher-service");
 
     private String api;
     private String serviceName;

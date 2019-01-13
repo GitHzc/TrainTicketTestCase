@@ -42,9 +42,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Autowired
     private TestTraceRepository testTraceRepository;
 
-    //private static ThreadLocal<String> testCaseIdThreadLocal = new ThreadLocal<>();
-
-    //private static ThreadLocal<List<TestTrace>> testTracesThreadLocal = new ThreadLocal<>();
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
@@ -87,7 +84,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     });
         } catch (Exception e) {
             if (e instanceof ResourceAccessException) {
-                throw new ConfigFaultException("cpu error");
+                throw new ConfigFaultException("memory error");
             }
             else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
                 throw e;
@@ -247,8 +244,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
 
         // get random number in [0, 4)
-        int randomNumber = new Random().nextInt(4);
-        System.out.println("randomNumber: " + randomNumber);
+        //int randomNumber = new Random().nextInt(4);
+        int randomNumber = 0;
+        System.out.println("===================randomNumber: " + randomNumber);
 
         switch (randomNumber) {
             case 0: { // don't execute step 6, 7 and 8
@@ -394,7 +392,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String confirmTraceId = UUIDUtil.generateUUID();
 
         TestTrace testTrace5 = new TestTrace();
-        if (confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
+        if (!confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
             testTrace5.setEntryApi("/preserve");
             testTrace5.setEntryService("ts-preserve-service");
         }

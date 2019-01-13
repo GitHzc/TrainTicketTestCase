@@ -1,0 +1,19 @@
+version: '3'
+services:
+  ts-service-test:
+    build: .
+    image: ts-service-test
+    restart: always
+    ports:
+    - 10101:10101
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    # driver: overlay
+    driver: bridge

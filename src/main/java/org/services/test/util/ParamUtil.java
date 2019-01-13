@@ -1,5 +1,6 @@
 package org.services.test.util;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
@@ -9,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
 public class ParamUtil {
     /**********************************************
@@ -18,6 +20,9 @@ public class ParamUtil {
         LoginRequestDto loginRequestDto = new LoginRequestDto();
         loginRequestDto.setEmail("fdse_microservices@163.com");
         loginRequestDto.setPassword("DefaultPassword");
+
+        //loginRequestDto.setEmail(new Random().nextInt(500) + "@163.com");
+        //loginRequestDto.setPassword("123456");
         loginRequestDto.setVerificationCode("abcd");
 
 //        LoginRequestDto loginRequestDto = new LoginRequestDto();
