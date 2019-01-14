@@ -244,67 +244,67 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
         }
 
-        int randomNumber = new Random().nextInt(4);
-        switch (randomNumber) {
-            case 0: {
-                break;
-            }
-            case 1: {
-                /*********************
-                 * 6th step: payment
-                 *********************/
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                boolean payResult = testTicketPayment(headers, paymentRequestDto);
-                if (!payResult) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-                break;
-            }
-            case 2: {
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                boolean payResult = testTicketPayment(headers, paymentRequestDto);
-                if (!payResult) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-                /*****************************
-                 * 7th step: collect ticket
-                 *****************************/
-                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
-                BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
-                if (!basicMessage.isStatus()) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-
-                break;
-            }
-            case 3: {
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                boolean payResult = testTicketPayment(headers, paymentRequestDto);
-                if (!payResult) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-
-                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
-                BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
-                if (!basicMessage.isStatus()) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-                /****************************
-                 * 8th step: enter station
-                 ****************************/
-                ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
-                BasicMessage basicEnterStationMessage = testEnterStation(headers, excuteRequestDto);
-                if (!basicEnterStationMessage.isStatus()) {
-                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
-                }
-                break;
-            }
-            default:
-                break;
-        }
+//        int randomNumber = new Random().nextInt(4);
+//        switch (randomNumber) {
+//            case 0: {
+//                break;
+//            }
+//            case 1: {
+//                /*********************
+//                 * 6th step: payment
+//                 *********************/
+//                String orderId = confirmResponseDto.getOrder().getId().toString();
+//                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+//                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+//                if (!payResult) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//                break;
+//            }
+//            case 2: {
+//                String orderId = confirmResponseDto.getOrder().getId().toString();
+//                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+//                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+//                if (!payResult) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//                /*****************************
+//                 * 7th step: collect ticket
+//                 *****************************/
+//                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+//                BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
+//                if (!basicMessage.isStatus()) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//
+//                break;
+//            }
+//            case 3: {
+//                String orderId = confirmResponseDto.getOrder().getId().toString();
+//                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+//                boolean payResult = testTicketPayment(headers, paymentRequestDto);
+//                if (!payResult) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//
+//                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+//                BasicMessage basicMessage = testTicketCollection(headers, collectRequestDto);
+//                if (!basicMessage.isStatus()) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//                /****************************
+//                 * 8th step: enter station
+//                 ****************************/
+//                ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
+//                BasicMessage basicEnterStationMessage = testEnterStation(headers, excuteRequestDto);
+//                if (!basicEnterStationMessage.isStatus()) {
+//                    return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
+//                }
+//                break;
+//            }
+//            default:
+//                break;
+//        }
         // construct response ----  passed all flow
         return returnFlowTestResult(ThreadLocalCache.testTracesThreadLocal.get(), ThreadLocalCache.testCaseThreadLocal.get());
     }
