@@ -13,6 +13,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
@@ -29,6 +30,8 @@ public class RestTemplateResponseErrorHandler
                     return (httpResponse.getStatusCode().series() == CLIENT_ERROR
                             || httpResponse.getStatusCode().series() == SERVER_ERROR);
                 } catch (SocketTimeoutException e) {
+                    throw new ConfigFaultException("cpu error");
+                } catch (SocketException e) {
                     throw new ConfigFaultException("memory error");
                 }
 
@@ -63,6 +66,12 @@ public class RestTemplateResponseErrorHandler
             throw new UnknownException(errorBody, "memory error");
         }
         else if ("java.net.SocketTimeoutException".equals(errorBody.getException())) {
+            throw new ConfigFaultException(errorBody, "cpu error");
+        }
+        else if ("java.net.ConnectException".equals(errorBody.getException())) {
+            throw new ConfigFaultException(errorBody, "memory error");
+        }
+        else if ("java.net.SocketException".equals(errorBody.getException())) {
             throw new ConfigFaultException(errorBody, "memory error");
         }
 

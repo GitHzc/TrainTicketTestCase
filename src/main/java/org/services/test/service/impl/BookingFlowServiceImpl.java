@@ -244,8 +244,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
 
         // get random number in [0, 4)
-        //int randomNumber = new Random().nextInt(4);
-        int randomNumber = 0;
+        int randomNumber = new Random().nextInt(4);
+        // int randomNumber = 0;
         System.out.println("===================randomNumber: " + randomNumber);
 
         switch (randomNumber) {
