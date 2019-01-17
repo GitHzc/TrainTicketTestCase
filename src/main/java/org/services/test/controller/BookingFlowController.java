@@ -34,39 +34,4 @@ public class BookingFlowController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         return bookingFlowService.login(loginRequestDto, headers).getBody();
     }
-
-//    @GetMapping("/ticket/query")
-//    public List<QueryTicketResponseDto> testQuery() {
-//        return bookingFlowService.queryTicket();
-//    }
-//
-//    @GetMapping("/contacts")
-//    public List<Contact> testContacts() {
-//        return bookingFlowService.getContacts();
-//    }
-//
-//    @GetMapping("/food")
-//    public FoodResponseDto getFood() {
-//        return bookingFlowService.getFood();
-//    }
-//
-//    @GetMapping("/preserve")
-//    public ConfirmResponseDto preserve() {
-//        return bookingFlowService.preservce();
-//    }
-//
-//    @GetMapping("/pay")
-//    public boolean pay() {
-//        return bookingFlowService.pay();
-//    }
-//
-//    @GetMapping("/collect")
-//    public BasicMessage collect() {
-//        return bookingFlowService.collect();
-//    }
-//
-//    @GetMapping("/enter")
-//    public BasicMessage enter() {
-//        return bookingFlowService.enter();
-//    }
 }

@@ -1,28 +1,44 @@
 package org.services.test.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.services.test.cache.ThreadLocalCache;
 import org.services.test.config.ClusterConfig;
-import org.services.test.entity.TestCase;
-import org.services.test.entity.TestTrace;
 import org.services.test.entity.constants.ServiceConstant;
-import org.services.test.entity.dto.*;
+import org.services.test.entity.dto.BasicMessage;
+import org.services.test.entity.dto.CollectRequestDto;
+import org.services.test.entity.dto.ConfirmRequestDto;
+import org.services.test.entity.dto.ConfirmResponseDto;
+import org.services.test.entity.dto.Contact;
+import org.services.test.entity.dto.ExcuteRequestDto;
+import org.services.test.entity.dto.FlowTestResult;
+import org.services.test.entity.dto.FoodRequestDto;
+import org.services.test.entity.dto.FoodResponseDto;
+import org.services.test.entity.dto.LoginRequestDto;
+import org.services.test.entity.dto.LoginResponseDto;
+import org.services.test.entity.dto.PaymentRequestDto;
+import org.services.test.entity.dto.QueryTicketRequestDto;
+import org.services.test.entity.dto.QueryTicketResponseDto;
 import org.services.test.exception.ConfigFaultException;
 import org.services.test.exception.UnknownException;
-import org.services.test.repository.TestCaseRepository;
-import org.services.test.repository.TestTraceRepository;
 import org.services.test.service.BookingFlowService;
-import org.services.test.util.*;
+import org.services.test.util.HeaderUtil;
+import org.services.test.util.ParamUtil;
+import org.services.test.util.UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @Service
 public class BookingFlowServiceImpl implements BookingFlowService {
@@ -35,12 +51,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private TestCaseRepository testCaseRepository;
-
-    @Autowired
-    private TestTraceRepository testTraceRepository;
 
 
     @Override
@@ -79,14 +89,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), uri);
         ResponseEntity<List<QueryTicketResponseDto>> ret = null;
         try {
-            ret =restTemplate.exchange(url, HttpMethod.POST, req,
+            ret = restTemplate.exchange(url, HttpMethod.POST, req,
                     new ParameterizedTypeReference<List<QueryTicketResponseDto>>() {
                     });
         } catch (Exception e) {
             if (e instanceof ResourceAccessException) {
                 throw new ConfigFaultException("memory error");
-            }
-            else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
+            } else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
                 throw e;
             }
         }
@@ -173,10 +182,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
      ***************************/
     @Override
     public FlowTestResult bookFlow() throws Exception {
-        List<TestTrace> traces = new ArrayList<>();
-        ThreadLocalCache.testTracesThreadLocal.set(traces);
-        ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
-
         FlowTestResult flowTestResult = new FlowTestResult();
 
         /******************
@@ -184,21 +189,11 @@ public class BookingFlowServiceImpl implements BookingFlowService {
          *****************/
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
 
-        // construct test case info
-        ThreadLocalCache.testCaseThreadLocal.set(constructTestCase(loginRequestDto, new HashMap<>(), ThreadLocalCache.testCaseIdThreadLocal.get()));
-
         LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
 
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
         Map<String, List<String>> headers = loginResponseDto.getHeaders();
-        headers.put(ServiceConstant.TEST_CASE_ID, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get()));
-
-        // set cookie in test case
-        ThreadLocalCache.testCaseThreadLocal.get().setSessionId(String.valueOf(headers.get(ServiceConstant.COOKIE)));
-
-
-
 
         /***************************
          * 2nd step: query ticket
@@ -236,9 +231,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
         if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
-            flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
-            flowTestResult.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
-            persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
             return flowTestResult;
         }
 
@@ -301,261 +293,52 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 break;
         }
 
-        flowTestResult.setTestCase(ThreadLocalCache.testCaseThreadLocal.get());
-        flowTestResult.setTestTraces(ThreadLocalCache.testTracesThreadLocal.get());
-        persistTestData(ThreadLocalCache.testCaseThreadLocal.get(), ThreadLocalCache.testTracesThreadLocal.get());
         return flowTestResult;
     }
 
 
     private void testEnterStation(Map<String, List<String>> headers, ExcuteRequestDto excuteRequestDto) {
-        String enterTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace8 = new TestTrace();
-        testTrace8.setEntryApi("/execute/execute");
-        testTrace8.setEntryService("ts-execute-service");
-        testTrace8.setEntryTimestamp(System.currentTimeMillis());
-
-        testTrace8.setExpected_result(0);
-        try {
-            testTrace8.setReq_param(objectMapper.writeValueAsString(excuteRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        testTrace8.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace8.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace8.setTestMethod("enter");
-        testTrace8.setTestTraceId(enterTraceId);
-        testTrace8.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace8);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), enterTraceId));
         ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
         BasicMessage enterBasicMsg = enterBasicMsgResp.getBody();
     }
 
     private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
-        String collectTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace7 = new TestTrace();
-        testTrace7.setEntryApi("/execute/collected");
-        testTrace7.setEntryService("ts-execute-service");
-        testTrace7.setEntryTimestamp(System.currentTimeMillis());
-
-        try {
-            testTrace7.setReq_param(objectMapper.writeValueAsString(collectRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        testTrace7.setExpected_result(0);
-        testTrace7.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace7.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace7.setTestMethod("collect");
-        testTrace7.setTestTraceId(collectTraceId);
-        testTrace7.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace7);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), collectTraceId));
         ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
         BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
     }
 
     private void testTicketPayment(Map<String, List<String>> headers, PaymentRequestDto paymentRequestDto) {
-        String paymentTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace6 = new TestTrace();
-        testTrace6.setEntryApi("/inside_payment/pay");
-        testTrace6.setEntryService("ts-inside-payment-service");
-        testTrace6.setEntryTimestamp(System.currentTimeMillis());
-        testTrace6.setExpected_result(0);
-        try {
-            testTrace6.setReq_param(objectMapper.writeValueAsString(paymentRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        testTrace6.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace6.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace6.setTestMethod("pay");
-        testTrace6.setTestTraceId(paymentTraceId);
-        testTrace6.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace6);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), paymentTraceId));
         pay(paymentRequestDto, headers);
     }
 
     private ConfirmResponseDto testPreserveTicket(Map<String, List<String>> headers, ConfirmRequestDto
             confirmRequestDto) {
-        String confirmTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace5 = new TestTrace();
-        if (!confirmRequestDto.getTo().equals(ServiceConstant.NAN_JING)) {
-            testTrace5.setEntryApi("/preserve");
-            testTrace5.setEntryService("ts-preserve-service");
-        }
-        else {
-            testTrace5.setEntryApi("/preserveOther");
-            testTrace5.setEntryService("ts-preserve-other-service");
-        }
-
-        testTrace5.setEntryTimestamp(System.currentTimeMillis());
-
-        try {
-            testTrace5.setReq_param(objectMapper.writeValueAsString(confirmRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        testTrace5.setExpected_result(0);
-        testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace5.setTestMethod("preserve");
-        testTrace5.setTestTraceId(confirmTraceId);
-        testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), confirmTraceId));
         ResponseEntity<ConfirmResponseDto> confirmResponseDtoResp = preserve(confirmRequestDto, headers);
-
         return confirmResponseDtoResp.getBody();
     }
 
     private void testQueryFood(Map<String, List<String>> headers, FoodRequestDto foodRequestDto) {
-        String foodTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace4 = new TestTrace();
-        testTrace4.setEntryApi("/food/getFood");
-        testTrace4.setEntryService("ts-food-service");
-        testTrace4.setEntryTimestamp(System.currentTimeMillis());
-
-        try {
-            testTrace4.setReq_param(objectMapper.writeValueAsString(foodRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        testTrace4.setExpected_result(0);
-        testTrace4.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace4.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace4.setTestMethod("getFood");
-        testTrace4.setTestTraceId(foodTraceId);
-        testTrace4.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace4);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), foodTraceId));
         getFood(foodRequestDto, headers);
     }
 
     private List<Contact> testQueryContact(Map<String, List<String>> headers) throws Exception {
-        String contactTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace3 = new TestTrace();
-        testTrace3.setEntryApi("/contacts/findContacts");
-        testTrace3.setEntryService("ts-contacts-service");
-        testTrace3.setEntryTimestamp(System.currentTimeMillis());
-
-        try {
-            testTrace3.setReq_param(objectMapper.writeValueAsString(null));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        testTrace3.setExpected_result(0);
-        testTrace3.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace3.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace3.setTestMethod("getContacts");
-        testTrace3.setTestTraceId(contactTraceId);
-        testTrace3.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace3);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), contactTraceId));
         ResponseEntity<List<Contact>> contactsResp = getContacts(headers);
-
         return contactsResp.getBody();
     }
 
     private List<QueryTicketResponseDto> testQueryTicket(Map<String, List<String>> headers, QueryTicketRequestDto
             queryTicketRequestDto) {
-        String queryTicketTraceId = UUIDUtil.generateUUID();
-
-        TestTrace testTrace2 = new TestTrace();
-        if (queryTicketRequestDto.getEndPlace().equals(ServiceConstant.NAN_JING)){
-            testTrace2.setEntryApi("/travel2/query");
-            testTrace2.setEntryService("ts-travel2-service");
-        } else {
-            testTrace2.setEntryApi("/travel/query");
-            testTrace2.setEntryService("ts-travel-service");
-        }
-
-        try {
-            testTrace2.setReq_param(objectMapper.writeValueAsString(queryTicketRequestDto));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        testTrace2.setEntryTimestamp(System.currentTimeMillis());
-        testTrace2.setExpected_result(0);
-        testTrace2.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace2.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace2.setTestMethod("queryTicket");
-        testTrace2.setTestTraceId(queryTicketTraceId);
-        testTrace2.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace2);
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(), queryTicketTraceId));
         ResponseEntity<List<QueryTicketResponseDto>> queryTicketResponseDtosResp = queryTicket(queryTicketRequestDto, headers);
-
         return queryTicketResponseDtosResp.getBody();
     }
 
     protected LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws Exception {
-        String loginTraceId = UUIDUtil.generateUUID();
-
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        loginHeaders.add(ServiceConstant.USER_AGENT, ThreadLocalCache.testCaseIdThreadLocal.get());
-        loginHeaders.add(ServiceConstant.USER_AGENT, loginTraceId);
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        TestTrace testTrace = new TestTrace();
-        testTrace.setTestTraceId(loginTraceId);
-        testTrace.setEntryApi("/login");
-        testTrace.setEntryService("ts-login-service");
-        testTrace.setEntryTimestamp(System.currentTimeMillis());
-        testTrace.setExpected_result(0); // need to check
-        testTrace.setReq_param(objectMapper.writeValueAsString(loginRequestDto));
-        testTrace.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace.setTestMethod("login");
-        testTrace.setSequence(TestTraceUtil.getTestTraceSequence());
-
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace);
-
         ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);
-
         return loginResponseDtoResp.getBody();
     }
 
-
-    protected TestCase constructTestCase(LoginRequestDto loginRequestDto, Map<String, List<String>> headers, String testCaseId) {
-        TestCase testCase = new TestCase();
-        testCase.setUserId(loginRequestDto.getEmail());
-        testCase.setSessionId(String.valueOf(headers.get(ServiceConstant.COOKIE)));
-        testCase.setTestCaseId(testCaseId);
-        testCase.setUserDetail("user details");
-        testCase.setUserType("normal");
-        return testCase;
-    }
-
-    @Transactional
-    public void persistTestData(TestCase testCase, List<TestTrace> testTraces) {
-        testCaseRepository.save(testCase);
-        testTraceRepository.saveAll(testTraces);
-    }
 }

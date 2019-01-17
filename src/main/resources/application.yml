@@ -5,17 +5,3 @@ cluster:
   #10.141.211.179:30099  10.141.212.146:31380
   host: 10.141.211.179
   port: 31380
-
-spring:
-  datasource:
-    #url: jdbc:mysql://10.141.212.21:3306/ai_ops
-    url: jdbc:mysql://10.141.212.21:3306/test_chuan_memory
-    username: root
-    password: root
-    driver-class-name: com.mysql.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  jooq:
-    sql-dialect: org.hibernate.dialect.MySQL5Dialect

@@ -18,17 +18,11 @@ public class ParamUtil {
      **********************************************/
     public static LoginRequestDto constructLoginRequestDto() {
         LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail("fdse_microservices@163.com");
-        loginRequestDto.setPassword("DefaultPassword");
 
-        //loginRequestDto.setEmail(new Random().nextInt(500) + "@163.com");
-        //loginRequestDto.setPassword("123456");
+        loginRequestDto.setEmail(new Random().nextInt(500) + "@163.com");
+        loginRequestDto.setPassword("123456");
         loginRequestDto.setVerificationCode("abcd");
 
-//        LoginRequestDto loginRequestDto = new LoginRequestDto();
-//        loginRequestDto.setEmail("kylinxiang@fudan.edu.com");
-//        loginRequestDto.setPassword("123456");
-//        loginRequestDto.setVerificationCode("abcd");
         return loginRequestDto;
     }
 

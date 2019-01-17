@@ -41,7 +41,6 @@ public class GlobalExceptionHandler {
         flowTestResult.setTestCase(testCase);
         flowTestResult.setTestTraces(testTraces);
 
-        bookingFlowServiceImpl.persistTestData(testCase, testTraces);
         return flowTestResult;
     }
 
@@ -61,7 +60,6 @@ public class GlobalExceptionHandler {
         flowTestResult.setTestCase(testCase);
         flowTestResult.setTestTraces(testTraces);
 
-        bookingFlowServiceImpl.persistTestData(testCase, testTraces);
         return flowTestResult;
     }
 
@@ -81,7 +79,6 @@ public class GlobalExceptionHandler {
         flowTestResult.setTestCase(testCase);
         flowTestResult.setTestTraces(testTraces);
 
-        bookingFlowServiceImpl.persistTestData(testCase, testTraces);
         return flowTestResult;
     }
 }
