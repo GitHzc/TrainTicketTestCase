@@ -2,12 +2,8 @@ package org.services.test.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
-import org.services.test.cache.ThreadLocalCache;
 import org.services.test.config.ClusterConfig;
-import org.services.test.entity.TestTrace;
-import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
-import org.services.test.exception.UnknownException;
 import org.services.test.service.FlowThreeService;
 import org.services.test.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,9 +105,6 @@ public class FlowThreeServiceImpl implements FlowThreeService {
             if (e.getMessage().contains("JsonParseException")) {
                 return responseEntity.getBody();
             }
-            else {
-                throw new UnknownException("Unknown error");
-            }
         }
 
         return responseEntity.getBody();
@@ -130,9 +123,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
     }
 
     @Override
-    public FlowTestResult consignFlow() throws Exception {
-        FlowTestResult flowTestResult = new FlowTestResult();
-
+    public void consignFlow() throws Exception {
         Map<String, List<String>> headers = new HashMap<>();
 
         /*
@@ -143,7 +134,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          */
         List<Order> orders = getOrders(headers);
         if (CollectionUtils.isEmpty(orders)) {
-            return flowTestResult;
+            return ;
         }
 
         /*
@@ -164,7 +155,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
                         || 2 == order.getStatus()).collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(consignableOrders)) {
-            return flowTestResult;
+            return ;
         }
 
         Order consignableOrder = RandomUtil.getRandomElementInList(consignableOrders);
@@ -185,17 +176,10 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         // the logic is redundant in system now, so we get a random item instead.
         ConsignInsertRequestDto randomConsignOrder = RandomUtil.getRandomElementInList(consignOrders);
         queryStationNameById(headers, randomConsignOrder.getFrom(), randomConsignOrder.getTo());
-
-        return flowTestResult;
     }
 
     @Override
-    public FlowTestResult voucherFlow() throws Exception {
-        ThreadLocalCache.testTracesThreadLocal.set(new ArrayList<>());
-        ThreadLocalCache.testCaseIdThreadLocal.set(UUIDUtil.generateUUID());
-
-        FlowTestResult flowTestResult = new FlowTestResult();
-
+    public void voucherFlow() throws Exception {
         Map<String, List<String>> headers = new HashMap<>();
 
 
@@ -207,7 +191,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          */
         List<Order> orders = getOrders(headers);
         if (CollectionUtils.isEmpty(orders)) {
-            return flowTestResult;
+            return ;
         }
 
 
@@ -226,7 +210,7 @@ public class FlowThreeServiceImpl implements FlowThreeService {
         List<Order> voucherableOrders = orders.stream().filter(
                 order -> 6 == order.getStatus()).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(voucherableOrders)) {
-            return flowTestResult;
+            return;
         }
 
         Order voucherableOrder = RandomUtil.getRandomElementInList(voucherableOrders);
@@ -239,7 +223,6 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          */
         VoucherInfoRequestDto voucherInfoRequestDto = ParamUtil.constructVoucherInfoRequestDto(voucherableOrder);
         testGetVoucherInfo(headers, voucherInfoRequestDto);
-        return flowTestResult;
     }
 
     private List<Order> testQueryOrders(Map<String, List<String>> headers, OrderQueryRequestDto orderQueryRequestDto) throws Exception {

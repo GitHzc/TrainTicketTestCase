@@ -2,9 +2,7 @@ package org.services.test.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.services.test.cache.ThreadLocalCache;
 import org.services.test.config.ClusterConfig;
-import org.services.test.entity.TestTrace;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
 import org.services.test.service.CancelFlowService;
@@ -60,6 +58,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     @Override
     public ResponseEntity<List<Order>> queryOrder(OrderQueryRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "QueryOrder");
         HttpEntity<OrderQueryRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/order/query");
@@ -72,6 +71,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     @Override
     public ResponseEntity<List<Order>> queryOrderOther(OrderQueryRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "QueryOrder");
         HttpEntity<OrderQueryRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/orderOther/query");
@@ -95,6 +95,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     @Override
     public ResponseEntity<BasicMessage> cancelOrder(CancelOrderRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "CancelOrder");
         HttpEntity<CancelOrderRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/cancelOrder");
@@ -103,9 +104,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     }
 
     @Override
-    public FlowTestResult cancelFlow() throws JsonProcessingException {
-
-        FlowTestResult flowTestResult = new FlowTestResult();
+    public void cancelFlow() throws JsonProcessingException {
 
         /******************
          * 1st step: login
@@ -143,15 +142,13 @@ public class CancelFlowServiceImpl implements CancelFlowService {
                 == 1).map(order -> order.getId().toString()).collect(Collectors.toList());
 
         String orderId = null;
-        if (RandomUtil.getRandomTrueOrFalse()){
+        if (RandomUtil.getRandomTrueOrFalse()) {
             if (!orderIds.isEmpty()) {
                 orderId = RandomUtil.getRandomElementInList(orderIds);
-                ThreadLocalCache.cancelOrderType.set("cancelOrder");
             }
-        }else {
+        } else {
             if (!orderOtherIds.isEmpty()) {
                 orderId = RandomUtil.getRandomElementInList(orderOtherIds);
-                ThreadLocalCache.cancelOrderType.set("cancelOrderOther");
             }
         }
 
@@ -164,33 +161,12 @@ public class CancelFlowServiceImpl implements CancelFlowService {
              ***************************/
             testCancelService(headers, orderId);
         }
-
-        return flowTestResult;
     }
 
     private BasicMessage testCancelService(Map<String, List<String>> headers, String orderId) throws
             JsonProcessingException {
-        String cancelTraceId = UUIDUtil.generateUUID();
-
-        headers.put(ServiceConstant.USER_AGENT, Arrays.asList(ThreadLocalCache.testCaseIdThreadLocal.get(),
-                cancelTraceId));
         CancelOrderRequestDto cancelOrderRequestDto = new CancelOrderRequestDto();
         cancelOrderRequestDto.setOrderId(orderId);
-
-        TestTrace testTrace5 = new TestTrace();
-        testTrace5.setSequence(TestTraceUtil.getTestTraceSequence());
-        testTrace5.setEntryApi("/cancelOrder");
-        testTrace5.setEntryService("ts-cancel-service");
-        testTrace5.setEntryTimestamp(System.currentTimeMillis());
-        testTrace5.setError(0);
-        testTrace5.setExpected_result(0);
-        testTrace5.setReq_param(objectMapper.writeValueAsString(cancelOrderRequestDto));
-        testTrace5.setTestCaseId(ThreadLocalCache.testCaseIdThreadLocal.get());
-        testTrace5.setTestClass(ServiceConstant.COMMON_SERVICE);
-        testTrace5.setTestMethod("cancelOrder");
-        testTrace5.setTestTraceId(cancelTraceId);
-        ThreadLocalCache.testTracesThreadLocal.get().add(testTrace5);
-        logger.info(testTrace5.toString());
 
         ResponseEntity<BasicMessage> basicMessageResp = cancelOrder(cancelOrderRequestDto, headers);
         BasicMessage basicMessage = basicMessageResp.getBody();
@@ -228,6 +204,7 @@ public class CancelFlowServiceImpl implements CancelFlowService {
     private LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws JsonProcessingException {
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
+        loginHeaders.add(HeaderUtil.REQUEST_TYPE_HEADER,"Login");
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);

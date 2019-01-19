@@ -1,6 +1,5 @@
 package org.services.test.controller;
 
-import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.service.FlowThreeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +14,12 @@ public class FlowThreeController {
     private FlowThreeService flowThreeService;
 
     @GetMapping("/consignFlow")
-    public FlowTestResult consignFlow() throws Exception {
-        return flowThreeService.consignFlow();
+    public void consignFlow() throws Exception {
+        flowThreeService.consignFlow();
     }
 
     @GetMapping("/voucherFlow")
-    public FlowTestResult voucherFlow() throws Exception {
-        return flowThreeService.voucherFlow();
+    public void voucherFlow() throws Exception {
+        flowThreeService.voucherFlow();
     }
 }

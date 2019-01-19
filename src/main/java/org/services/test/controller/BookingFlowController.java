@@ -1,9 +1,10 @@
 package org.services.test.controller;
 
-import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.entity.dto.LoginRequestDto;
 import org.services.test.entity.dto.LoginResponseDto;
 import org.services.test.service.BookingFlowService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test")
 public class BookingFlowController {
+    private Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private BookingFlowService bookingFlowService;
 
     @GetMapping("/bookingflow")
-    public FlowTestResult booking() throws Exception {
-        return bookingFlowService.bookFlow();
+    public void booking() throws Exception {
+        log.info("Receive booking flow request");
+        bookingFlowService.bookFlow();
     }
 
     @GetMapping("/login")

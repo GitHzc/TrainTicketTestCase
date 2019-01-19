@@ -3,7 +3,6 @@ package org.services.test.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.services.test.entity.dto.BasicMessage;
 import org.services.test.entity.dto.CancelOrderRequestDto;
-import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.service.CancelFlowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +23,8 @@ public class CancelFlowController {
     private CancelFlowService cancelFlowService;
 
     @GetMapping("/cancelflow")
-    public FlowTestResult cancelFlow() throws JsonProcessingException {
-        return cancelFlowService.cancelFlow();
+    public void cancelFlow() throws JsonProcessingException {
+        cancelFlowService.cancelFlow();
     }
 
     @GetMapping("/cancelOrder")

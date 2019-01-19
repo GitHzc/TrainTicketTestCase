@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class HeaderUtil {
+    public static final String REQUEST_TYPE_HEADER = "request-type";
 
     public static HttpHeaders setHeader(Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = new HttpHeaders();

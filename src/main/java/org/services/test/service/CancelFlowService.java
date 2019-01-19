@@ -19,5 +19,5 @@ public interface CancelFlowService {
 
     ResponseEntity<BasicMessage> cancelOrder(CancelOrderRequestDto dto, Map<String, List<String>> headers);
 
-    FlowTestResult cancelFlow() throws JsonProcessingException;
+    void cancelFlow() throws JsonProcessingException;
 }

@@ -8,9 +8,9 @@ import java.util.Map;
 public interface FlowThreeService {
     List<Order> queryOrders(OrderQueryRequestDto orderQueryRequestDto, Map<String, List<String>> headers);
 
-    FlowTestResult consignFlow() throws Exception;
+    void consignFlow() throws Exception;
 
-    FlowTestResult voucherFlow() throws Exception;
+    void voucherFlow() throws Exception;
 
     List<Order> queryOrdersOther(OrderQueryRequestDto orderQueryRequestDto, Map<String, List<String>> headers);
 

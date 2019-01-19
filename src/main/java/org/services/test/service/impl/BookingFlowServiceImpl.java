@@ -9,7 +9,6 @@ import org.services.test.entity.dto.ConfirmRequestDto;
 import org.services.test.entity.dto.ConfirmResponseDto;
 import org.services.test.entity.dto.Contact;
 import org.services.test.entity.dto.ExcuteRequestDto;
-import org.services.test.entity.dto.FlowTestResult;
 import org.services.test.entity.dto.FoodRequestDto;
 import org.services.test.entity.dto.FoodResponseDto;
 import org.services.test.entity.dto.LoginRequestDto;
@@ -17,12 +16,12 @@ import org.services.test.entity.dto.LoginResponseDto;
 import org.services.test.entity.dto.PaymentRequestDto;
 import org.services.test.entity.dto.QueryTicketRequestDto;
 import org.services.test.entity.dto.QueryTicketResponseDto;
-import org.services.test.exception.ConfigFaultException;
-import org.services.test.exception.UnknownException;
 import org.services.test.service.BookingFlowService;
 import org.services.test.util.HeaderUtil;
 import org.services.test.util.ParamUtil;
 import org.services.test.util.UrlUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -42,6 +41,7 @@ import java.util.Random;
 
 @Service
 public class BookingFlowServiceImpl implements BookingFlowService {
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private RestTemplate restTemplate;
@@ -78,6 +78,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     public ResponseEntity<List<QueryTicketResponseDto>> queryTicket(QueryTicketRequestDto dto, Map<String,
             List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "QueryTravelInfo");
         HttpEntity<QueryTicketRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String uri = null;
@@ -93,11 +94,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     new ParameterizedTypeReference<List<QueryTicketResponseDto>>() {
                     });
         } catch (Exception e) {
-            if (e instanceof ResourceAccessException) {
-                throw new ConfigFaultException("memory error");
-            } else if (e instanceof ConfigFaultException || e instanceof UnknownException) {
-                throw e;
-            }
         }
 
         return ret;
@@ -106,6 +102,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<List<Contact>> getContacts(Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "GetContact");
         HttpEntity<QueryTicketRequestDto> req = new HttpEntity<>(httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/contacts/findContacts");
@@ -118,6 +115,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<FoodResponseDto> getFood(FoodRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "GetFood");
         HttpEntity<FoodRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/food/getFood");
@@ -129,6 +127,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<ConfirmResponseDto> preserve(ConfirmRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "PreserveTicket");
         HttpEntity<ConfirmRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String uri;
@@ -147,6 +146,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<Boolean> pay(PaymentRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "Pay");
         HttpEntity<PaymentRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/inside_payment/pay");
@@ -158,6 +158,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<BasicMessage> collect(CollectRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "Collect");
         HttpEntity<CollectRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/execute/collected");
@@ -169,6 +170,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public ResponseEntity<BasicMessage> enter(ExcuteRequestDto dto, Map<String, List<String>> headers) {
         HttpHeaders httpHeaders = HeaderUtil.setHeader(headers);
+        httpHeaders.set(HeaderUtil.REQUEST_TYPE_HEADER, "Execute");
         HttpEntity<ExcuteRequestDto> req = new HttpEntity<>(dto, httpHeaders);
 
         String url = UrlUtil.constructUrl(clusterConfig.getHost(), clusterConfig.getPort(), "/execute/execute");
@@ -181,8 +183,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
      * ticket booking flow test
      ***************************/
     @Override
-    public FlowTestResult bookFlow() throws Exception {
-        FlowTestResult flowTestResult = new FlowTestResult();
+    public void bookFlow() throws Exception {
 
         /******************
          * 1st step: login
@@ -231,7 +232,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 endingStation, tripId, contactId);
         ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
         if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
-            return flowTestResult;
+            return;
         }
 
 
@@ -293,7 +294,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 break;
         }
 
-        return flowTestResult;
     }
 
 
@@ -335,6 +335,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     protected LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws Exception {
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
+        loginHeaders.add(HeaderUtil.REQUEST_TYPE_HEADER,"Login");
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);

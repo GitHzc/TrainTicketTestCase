@@ -10,7 +10,7 @@ import java.util.Map;
 public interface BookingFlowService {
     ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders);
 
-    ResponseEntity<List<QueryTicketResponseDto>> queryTicket(QueryTicketRequestDto dto,  Map<String, List<String>> headers);
+    ResponseEntity<List<QueryTicketResponseDto>> queryTicket(QueryTicketRequestDto dto, Map<String, List<String>> headers);
 
     ResponseEntity<List<Contact>> getContacts(Map<String, List<String>> headers);
 
@@ -24,5 +24,5 @@ public interface BookingFlowService {
 
     ResponseEntity<BasicMessage> enter(ExcuteRequestDto dto, Map<String, List<String>> headers);
 
-    FlowTestResult bookFlow() throws Exception;
+    void bookFlow() throws Exception;
 }
