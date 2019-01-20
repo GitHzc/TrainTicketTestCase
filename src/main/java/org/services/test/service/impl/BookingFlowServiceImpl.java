@@ -29,8 +29,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -48,10 +48,6 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
     @Autowired
     private ClusterConfig clusterConfig;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {
@@ -184,116 +180,144 @@ public class BookingFlowServiceImpl implements BookingFlowService {
      ***************************/
     @Override
     public void bookFlow() throws Exception {
+        int t1 = 0;
+        int t2 = 0;
+        int t3 = 0;
+        int t4 = 0;
+        for (int i = 0; i < 500; i++) {
+            log.info(String.format("This is the %d times test", i));
+            /******************
+             * 1st step: login
+             *****************/
+            log.info("1st step: login");
+            LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDtoBySequence(i);
 
-        /******************
-         * 1st step: login
-         *****************/
-        LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
+            LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
 
-        LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
+            // set headers
+            // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
+            Map<String, List<String>> headers = loginResponseDto.getHeaders();
 
-        // set headers
-        // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
-        Map<String, List<String>> headers = loginResponseDto.getHeaders();
-
-        /***************************
-         * 2nd step: query ticket
-         ***************************/
-        QueryTicketRequestDto queryTicketRequestDto = ParamUtil.constructQueryTicketReqDto();
-        List<QueryTicketResponseDto> queryTicketResponseDtos = testQueryTicket(headers, queryTicketRequestDto);
-
-
-        /*************************************
-         * 3rd step: get contacts
-         *************************************/
-        List<Contact> contacts = testQueryContact(headers);
-
-
-        /***********************
-         * 4th step: get food
-         ***********************/
-        // globe field to reuse
-        String departureTime = queryTicketRequestDto.getDepartureTime();
-        String startingStation = queryTicketRequestDto.getStartingPlace();
-        String endingStation = queryTicketRequestDto.getEndPlace();
-        String tripId = queryTicketResponseDtos.get(0).getTripId().getType()
-                + queryTicketResponseDtos.get(0).getTripId().getNumber(); //默认选第一辆
-
-        FoodRequestDto foodRequestDto = ParamUtil.constructFoodRequestDto(departureTime, startingStation,
-                endingStation, tripId);
-        testQueryFood(headers, foodRequestDto);
+            /***************************
+             * 2nd step: query ticket
+             ***************************/
+            log.info("2nd step: query ticket");
+            QueryTicketRequestDto queryTicketRequestDto = ParamUtil.constructQueryTicketReqDto();
+            List<QueryTicketResponseDto> queryTicketResponseDtos = testQueryTicket(headers, queryTicketRequestDto);
 
 
-        /******************************
-         * 5th step: confirm ticket
-         ******************************/
-        String contactId = ParamUtil.getRandomContact(contacts);// random param
-        ConfirmRequestDto confirmRequestDto = ParamUtil.constructConfirmRequestDto(departureTime, startingStation,
-                endingStation, tripId, contactId);
-        ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
-        if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
-            return;
+            /*************************************
+             * 3rd step: get contacts
+             *************************************/
+            log.info("3rd step: get contacts");
+            List<Contact> contacts = testQueryContact(headers);
+
+
+            /***********************
+             * 4th step: get food
+             ***********************/
+            log.info("4th step: get food");
+            // globe field to reuse
+            String departureTime = queryTicketRequestDto.getDepartureTime();
+            String startingStation = queryTicketRequestDto.getStartingPlace();
+            String endingStation = queryTicketRequestDto.getEndPlace();
+            String tripId = queryTicketResponseDtos.get(0).getTripId().getType()
+                    + queryTicketResponseDtos.get(0).getTripId().getNumber(); //默认选第一辆
+
+            FoodRequestDto foodRequestDto = ParamUtil.constructFoodRequestDto(departureTime, startingStation,
+                    endingStation, tripId);
+            testQueryFood(headers, foodRequestDto);
+
+
+            /******************************
+             * 5th step: confirm ticket
+             ******************************/
+            log.info("5th step: confirm ticket");
+            String contactId = ParamUtil.getRandomContact(contacts);// random param
+            ConfirmRequestDto confirmRequestDto = ParamUtil.constructConfirmRequestDto(departureTime, startingStation,
+                    endingStation, tripId, contactId);
+            ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
+            if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
+                log.info("Confirm ticket error!");
+                return;
+            }
+
+
+            // get random number in [0, 4)
+            int randomNumber = new Random().nextInt(4);
+            // int randomNumber = 0;
+            System.out.println("===================randomNumber: " + randomNumber);
+
+            switch (randomNumber) {
+                case 0: { // don't execute step 6, 7 and 8
+                    t1++;
+                    break;
+                }
+                case 1: { // execute step 6
+                    t2++;
+                    /*********************
+                     * 6th step: payment
+                     *********************/
+                    log.info("6th step: payment");
+                    String orderId = confirmResponseDto.getOrder().getId().toString();
+                    PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                    testTicketPayment(headers, paymentRequestDto);
+                    break;
+                }
+                case 2: { // execute step 6 and step 7
+                    t3++;
+                    /*********************
+                     * 6th step: payment
+                     *********************/
+                    log.info("6th step: payment");
+                    String orderId = confirmResponseDto.getOrder().getId().toString();
+                    PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                    testTicketPayment(headers, paymentRequestDto);
+
+                    /*****************************
+                     * 7th step: collect ticket
+                     *****************************/
+                    log.info("7th step: collect ticket");
+                    CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+                    testTicketCollection(headers, collectRequestDto);
+                    break;
+                }
+                case 3: { // execute step 6, 7 and 8
+                    t4++;
+                    /*********************
+                     * 6th step: payment
+                     *********************/
+                    log.info("6th step: payment");
+                    String orderId = confirmResponseDto.getOrder().getId().toString();
+                    PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+                    testTicketPayment(headers, paymentRequestDto);
+
+                    /*****************************
+                     * 7th step: collect ticket
+                     *****************************/
+                    log.info("7th step: collect ticket");
+                    CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+                    testTicketCollection(headers, collectRequestDto);
+
+                    /****************************
+                     * 8th step: enter station
+                     ****************************/
+                    log.info("8th step: enter station");
+                    ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
+                    testEnterStation(headers, excuteRequestDto);
+                    break;
+                }
+                default:
+                    break;
+            }
+            Thread.sleep(1000);
+            log.info(String.format("%n"));
         }
-
-
-        // get random number in [0, 4)
-        int randomNumber = new Random().nextInt(4);
-        // int randomNumber = 0;
-        System.out.println("===================randomNumber: " + randomNumber);
-
-        switch (randomNumber) {
-            case 0: { // don't execute step 6, 7 and 8
-                break;
-            }
-            case 1: { // execute step 6
-                /*********************
-                 * 6th step: payment
-                 *********************/
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                testTicketPayment(headers, paymentRequestDto);
-                break;
-            }
-            case 2: { // execute step 6 and step 7
-                /*********************
-                 * 6th step: payment
-                 *********************/
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                testTicketPayment(headers, paymentRequestDto);
-
-                /*****************************
-                 * 7th step: collect ticket
-                 *****************************/
-                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
-                testTicketCollection(headers, collectRequestDto);
-                break;
-            }
-            case 3: { // execute step 6, 7 and 8
-                /*********************
-                 * 6th step: payment
-                 *********************/
-                String orderId = confirmResponseDto.getOrder().getId().toString();
-                PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
-                testTicketPayment(headers, paymentRequestDto);
-
-                /*****************************
-                 * 7th step: collect ticket
-                 *****************************/
-                CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
-                testTicketCollection(headers, collectRequestDto);
-
-                /****************************
-                 * 8th step: enter station
-                 ****************************/
-                ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
-                testEnterStation(headers, excuteRequestDto);
-                break;
-            }
-            default:
-                break;
-        }
-
+        log.info(String.format("%n"));
+        log.info(String.format("%d times don't include payment", t1));
+        log.info(String.format("%d times include payment", t2));
+        log.info(String.format("%d times include payment, collect", t3));
+        log.info(String.format("%d times include payment, collect, enter", t4));
     }
 
 
@@ -335,7 +359,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     protected LoginResponseDto testLogin(LoginRequestDto loginRequestDto) throws Exception {
         HttpHeaders loginHeaders = new HttpHeaders();
         loginHeaders.add(ServiceConstant.COOKIE, "YsbCaptcha=C480E98E3B734C438EC07CD4EB72AB21");
-        loginHeaders.add(HeaderUtil.REQUEST_TYPE_HEADER,"Login");
+        loginHeaders.add(HeaderUtil.REQUEST_TYPE_HEADER, "Login");
         loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<LoginResponseDto> loginResponseDtoResp = login(loginRequestDto, loginHeaders);

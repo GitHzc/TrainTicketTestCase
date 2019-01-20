@@ -26,6 +26,16 @@ public class ParamUtil {
         return loginRequestDto;
     }
 
+    public static LoginRequestDto constructLoginRequestDtoBySequence(int sequence) {
+        LoginRequestDto loginRequestDto = new LoginRequestDto();
+
+        loginRequestDto.setEmail(sequence + "@163.com");
+        loginRequestDto.setPassword("123456");
+        loginRequestDto.setVerificationCode("abcd");
+
+        return loginRequestDto;
+    }
+
     public static QueryTicketRequestDto constructQueryTicketReqDto() {
         QueryTicketRequestDto queryTicketRequestDto = new QueryTicketRequestDto();
 

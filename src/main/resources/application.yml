@@ -4,3 +4,7 @@ server:
 cluster:
   host: 10.141.212.23
   port: 31380
+
+logback:
+  logdir: /opt/log/testscript
+  appname: testscript

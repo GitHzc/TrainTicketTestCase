@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.services.test.config.ClusterConfig;
 import org.services.test.entity.constants.ServiceConstant;
 import org.services.test.entity.dto.*;
+import org.services.test.service.BookingFlowService;
 import org.services.test.service.CancelFlowService;
 import org.services.test.util.*;
 import org.slf4j.Logger;
@@ -25,14 +26,6 @@ public class CancelFlowServiceImpl implements CancelFlowService {
 
     @Autowired
     private ClusterConfig clusterConfig;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private BookingFlowServiceImpl bookingFlowServiceImpl;
-
-    private static final Logger logger = LoggerFactory.getLogger(CancelFlowServiceImpl.class);
 
     @Override
     public ResponseEntity<LoginResponseDto> login(LoginRequestDto dto, HttpHeaders httpHeaders) {

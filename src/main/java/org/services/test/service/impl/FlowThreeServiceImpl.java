@@ -1,9 +1,9 @@
 package org.services.test.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.services.test.config.ClusterConfig;
 import org.services.test.entity.dto.*;
+import org.services.test.service.BookingFlowService;
 import org.services.test.service.FlowThreeService;
 import org.services.test.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +19,10 @@ import java.util.stream.Collectors;
 public class FlowThreeServiceImpl implements FlowThreeService {
 
     @Autowired
-    BookingFlowServiceImpl bookingFlowServiceImpl;
+    private BookingFlowService bookingFlowService;
 
     @Autowired
     private RestTemplate restTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private ClusterConfig clusterConfig;
@@ -259,11 +256,11 @@ public class FlowThreeServiceImpl implements FlowThreeService {
          * 1. login
          */
         LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDto();
-        LoginResponseDto loginResponseDto = bookingFlowServiceImpl.testLogin(loginRequestDto);
+//        LoginResponseDto loginResponseDto = bookingFlowService.testLogin(loginRequestDto);
 
         // set headers
         // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
-        headers.putAll(loginResponseDto.getHeaders());
+//        headers.putAll(loginResponseDto.getHeaders());
 
         /*
          * 2. query order service
