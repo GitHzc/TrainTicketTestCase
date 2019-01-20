@@ -31,6 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -184,7 +185,12 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         int t2 = 0;
         int t3 = 0;
         int t4 = 0;
+        long time1 = 0;
+        long time2 = 0;
+        long time3 = 0;
+        long time4 = 0;
         for (int i = 0; i < 500; i++) {
+            StopWatch stopWatch = new StopWatch();
             log.info(String.format("This is the %d times test", i));
             /******************
              * 1st step: login
@@ -192,7 +198,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             log.info("1st step: login");
             LoginRequestDto loginRequestDto = ParamUtil.constructLoginRequestDtoBySequence(i);
 
+            stopWatch.start("login");
             LoginResponseDto loginResponseDto = testLogin(loginRequestDto);
+            stopWatch.stop();
 
             // set headers
             // login service will set 2 cookies: login and loginToken, this is mandatory for some other service
@@ -203,15 +211,18 @@ public class BookingFlowServiceImpl implements BookingFlowService {
              ***************************/
             log.info("2nd step: query ticket");
             QueryTicketRequestDto queryTicketRequestDto = ParamUtil.constructQueryTicketReqDto();
+            stopWatch.start("query ticket");
             List<QueryTicketResponseDto> queryTicketResponseDtos = testQueryTicket(headers, queryTicketRequestDto);
+            stopWatch.stop();
 
 
             /*************************************
              * 3rd step: get contacts
              *************************************/
             log.info("3rd step: get contacts");
+            stopWatch.start("get contacts");
             List<Contact> contacts = testQueryContact(headers);
-
+            stopWatch.stop();
 
             /***********************
              * 4th step: get food
@@ -226,8 +237,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
             FoodRequestDto foodRequestDto = ParamUtil.constructFoodRequestDto(departureTime, startingStation,
                     endingStation, tripId);
+            stopWatch.start("get food");
             testQueryFood(headers, foodRequestDto);
-
+            stopWatch.stop();
 
             /******************************
              * 5th step: confirm ticket
@@ -236,7 +248,9 @@ public class BookingFlowServiceImpl implements BookingFlowService {
             String contactId = ParamUtil.getRandomContact(contacts);// random param
             ConfirmRequestDto confirmRequestDto = ParamUtil.constructConfirmRequestDto(departureTime, startingStation,
                     endingStation, tripId, contactId);
+            stopWatch.start("confirm ticket");
             ConfirmResponseDto confirmResponseDto = testPreserveTicket(headers, confirmRequestDto);
+            stopWatch.stop();
             if (null == confirmResponseDto || null == confirmResponseDto.getOrder()) {
                 log.info("Confirm ticket error!");
                 return;
@@ -245,12 +259,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
 
             // get random number in [0, 4)
             int randomNumber = new Random().nextInt(4);
-            // int randomNumber = 0;
             System.out.println("===================randomNumber: " + randomNumber);
 
             switch (randomNumber) {
                 case 0: { // don't execute step 6, 7 and 8
                     t1++;
+                    time1 += stopWatch.getTotalTimeMillis();
+                    log.info(stopWatch.prettyPrint());
                     break;
                 }
                 case 1: { // execute step 6
@@ -261,7 +276,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     log.info("6th step: payment");
                     String orderId = confirmResponseDto.getOrder().getId().toString();
                     PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+
+                    stopWatch.start("payment");
                     testTicketPayment(headers, paymentRequestDto);
+                    stopWatch.stop();
+
+                    time2 += stopWatch.getTotalTimeMillis();
+                    log.info(stopWatch.prettyPrint());
                     break;
                 }
                 case 2: { // execute step 6 and step 7
@@ -272,14 +293,23 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     log.info("6th step: payment");
                     String orderId = confirmResponseDto.getOrder().getId().toString();
                     PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+
+                    stopWatch.start("payment");
                     testTicketPayment(headers, paymentRequestDto);
+                    stopWatch.stop();
 
                     /*****************************
                      * 7th step: collect ticket
                      *****************************/
                     log.info("7th step: collect ticket");
                     CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+
+                    stopWatch.start("collect ticket");
                     testTicketCollection(headers, collectRequestDto);
+                    stopWatch.stop();
+
+                    time3 += stopWatch.getTotalTimeMillis();
+                    log.info(stopWatch.prettyPrint());
                     break;
                 }
                 case 3: { // execute step 6, 7 and 8
@@ -290,45 +320,58 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                     log.info("6th step: payment");
                     String orderId = confirmResponseDto.getOrder().getId().toString();
                     PaymentRequestDto paymentRequestDto = ParamUtil.constructPaymentRequestDto(tripId, orderId);
+
+                    stopWatch.start("payment");
                     testTicketPayment(headers, paymentRequestDto);
+                    stopWatch.stop();
 
                     /*****************************
                      * 7th step: collect ticket
                      *****************************/
                     log.info("7th step: collect ticket");
                     CollectRequestDto collectRequestDto = ParamUtil.constructCollectRequestDto(orderId);
+
+                    stopWatch.start("collect ticket");
                     testTicketCollection(headers, collectRequestDto);
+                    stopWatch.stop();
 
                     /****************************
                      * 8th step: enter station
                      ****************************/
                     log.info("8th step: enter station");
                     ExcuteRequestDto excuteRequestDto = ParamUtil.constructExecuteRequestDto(orderId);
+
+                    stopWatch.start("enter station");
                     testEnterStation(headers, excuteRequestDto);
+                    stopWatch.stop();
+
+                    time4 += stopWatch.getTotalTimeMillis();
+                    log.info(stopWatch.prettyPrint());
                     break;
                 }
                 default:
+                    log.info(stopWatch.prettyPrint());
                     break;
             }
             Thread.sleep(1000);
             log.info(String.format("%n"));
         }
         log.info(String.format("%n"));
-        log.info(String.format("%d times don't include payment", t1));
-        log.info(String.format("%d times include payment", t2));
-        log.info(String.format("%d times include payment, collect", t3));
-        log.info(String.format("%d times include payment, collect, enter", t4));
+        log.info(String.format("%d times don't include payment, total time spent is %s and the average time spent is %s", t1, String.valueOf(time1), String.valueOf(time1 / t1)));
+        log.info(String.format("%d times include payment, total time spent is %s and the average time spent is %s", t2, String.valueOf(time2), String.valueOf(time2 / t2)));
+        log.info(String.format("%d times include payment, collect, total time spent is %s and the average time spent is %s", t3, String.valueOf(time3), String.valueOf(time3 / t3)));
+        log.info(String.format("%d times include payment, collect, enter, total time spent is %s and the average time spent is %s", t4, String.valueOf(time4), String.valueOf(time4 / t4)));
     }
 
 
     private void testEnterStation(Map<String, List<String>> headers, ExcuteRequestDto excuteRequestDto) {
         ResponseEntity<BasicMessage> enterBasicMsgResp = enter(excuteRequestDto, headers);
-        BasicMessage enterBasicMsg = enterBasicMsgResp.getBody();
+        enterBasicMsgResp.getBody();
     }
 
     private void testTicketCollection(Map<String, List<String>> headers, CollectRequestDto collectRequestDto) {
         ResponseEntity<BasicMessage> collectBasicMsgResp = collect(collectRequestDto, headers);
-        BasicMessage collectBasicMsg = collectBasicMsgResp.getBody();
+        collectBasicMsgResp.getBody();
     }
 
     private void testTicketPayment(Map<String, List<String>> headers, PaymentRequestDto paymentRequestDto) {
